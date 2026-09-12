@@ -356,6 +356,75 @@ Item {
     }
   }
 
+  // ------------------------------------------------------- level dials
+
+  // Volume from PipeWire; display and keyboard backlight from sysfs, read
+  // only while the dashboard is showing.
+  readonly property var sinkNode: Pipewire.defaultAudioSink
+  PwObjectTracker { objects: root.sinkNode ? [root.sinkNode] : [] }
+  readonly property real volumeLevel: sinkNode && sinkNode.audio ? Number(sinkNode.audio.volume) || 0 : 0
+  readonly property bool volumeMuted: sinkNode && sinkNode.audio ? sinkNode.audio.muted === true : false
+
+  property string backlightPath: ""
+  property real backlightMax: 0
+  property real backlightLevel: 0
+  Process {
+    command: ["sh", "-c", "for d in /sys/class/backlight/*; do echo \"$d\"; cat \"$d/max_brightness\"; break; done"]
+    running: true
+    stdout: StdioCollector {
+      onStreamFinished: {
+        var lines = String(this.text || "").trim().split("\n")
+        if (lines.length >= 2) { root.backlightPath = lines[0]; root.backlightMax = Number(lines[1]) || 0 }
+      }
+    }
+  }
+  FileView {
+    id: backlightFile
+    path: root.backlightPath ? root.backlightPath + "/brightness" : ""
+    printErrors: false
+    onLoaded: root.backlightLevel = root.backlightMax > 0 ? (Number(String(text()).trim()) || 0) / root.backlightMax : 0
+  }
+
+  readonly property string kbdPath: "/sys/class/leds/kbd_backlight"
+  property real kbdMax: 0
+  property real kbdLevel: 0
+  FileView {
+    path: root.kbdPath + "/max_brightness"
+    printErrors: false
+    onLoaded: root.kbdMax = Number(String(text()).trim()) || 0
+  }
+  FileView {
+    id: kbdFile
+    path: root.kbdPath + "/brightness"
+    printErrors: false
+    onLoaded: root.kbdLevel = root.kbdMax > 0 ? (Number(String(text()).trim()) || 0) / root.kbdMax : 0
+  }
+  readonly property bool dashboardShowing: islandState === "expanded" && expandedMode === "dashboard"
+  Timer {
+    interval: 400
+    repeat: true
+    running: root.dashboardShowing
+    triggeredOnStart: true
+    onTriggered: { if (root.backlightPath) backlightFile.reload(); kbdFile.reload() }
+  }
+
+  readonly property var dials: [
+    { key: "volume", icon: volumeMuted ? "󰖁" : (volumeLevel < 0.34 ? "󰕿" : (volumeLevel < 0.67 ? "󰖀" : "󰕾")), level: volumeLevel, active: !volumeMuted },
+    { key: "brightness", icon: "󰃟", level: backlightLevel, active: true },
+    { key: "keyboard", icon: "󰌌", level: kbdLevel, active: kbdLevel > 0 }
+  ]
+
+  function adjustDial(key, delta) {
+    if (key === "volume") Quickshell.execDetached(["omarchy-audio-output-volume", delta > 0 ? "raise" : "lower"])
+    else if (key === "brightness") Quickshell.execDetached(["omarchy-brightness-display", delta > 0 ? "+5%" : "5%-"])
+    else if (key === "keyboard") Quickshell.execDetached(["omarchy-brightness-keyboard", delta > 0 ? "up" : "down"])
+  }
+
+  function tapDial(key) {
+    if (key === "volume") Quickshell.execDetached(["omarchy-audio-output-volume", "mute-toggle"])
+    else if (key === "keyboard") Quickshell.execDetached(["omarchy-brightness-keyboard", "cycle"])
+  }
+
   readonly property var toggles: [
     { key: "dnd", icon: dnd ? "󰂛" : "󰂚", label: "Do Not Disturb", active: dnd },
     { key: "nightlight", icon: "󰖔", label: "Night Light", active: nightlightOn },
@@ -639,6 +708,7 @@ Item {
         onHoveredChanged: root.setPointerInside(hovered)
       }
       WheelHandler {
+        enabled: !root.expanded
         onWheel: function(event) { root.wheel(event.angleDelta.y) }
       }
 

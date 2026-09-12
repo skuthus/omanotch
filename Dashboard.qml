@@ -65,11 +65,32 @@ Item {
     width: root.width - root.inset * 2
     height: root.height - root.strip - Math.round(root.inset * 0.75)
 
-    // The clock: the one large element. Click to switch 12/24 hour.
+    // Leading: level dials, mirroring the toggles on the trailing side.
+    Row {
+      id: leading
+      anchors.left: parent.left
+      anchors.verticalCenter: parent.verticalCenter
+      spacing: 8
+      Repeater {
+        model: root.notch.dials
+        LevelDial {
+          required property var modelData
+          notch: root.notch
+          icon: modelData.icon
+          level: modelData.level
+          active: modelData.active
+          onAdjust: function(delta) { root.notch.adjustDial(modelData.key, delta) }
+          onTapped: root.notch.tapDial(modelData.key)
+        }
+      }
+    }
+
+    // The clock: the one large element, centred under the notch. Click to
+    // switch 12/24 hour.
     Item {
       id: clock
       readonly property var parts: root.notch.clockParts(root.now)
-      anchors.left: parent.left
+      anchors.horizontalCenter: parent.horizontalCenter
       // Bottom of the digits' ink sits on the bottom of the toggle row.
       y: trailing.y + trailing.height - height + Math.round((height - digits.baselineOffset) * 0.55)
       width: face.width

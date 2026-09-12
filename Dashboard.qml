@@ -107,26 +107,16 @@ Item {
       }
     }
 
-    // Trailing column: battery detail over the Control Center style toggles.
-    Column {
+    // Trailing: the Control Center style toggles.
+    Item {
       id: trailing
       anchors.right: parent.right
       anchors.verticalCenter: parent.verticalCenter
-      spacing: 7
-
-      Text {
-        anchors.right: parent.right
-        text: root.notch.batteryDetail
-        visible: text !== ""
-        color: root.notch.inkDim
-        font.family: root.notch.fontFamily
-        font.pixelSize: root.notch.captionSize
-        font.features: { "tnum": 1 }
-        textFormat: Text.PlainText
-      }
+      width: toggleRow.width
+      height: toggleRow.height
 
       Row {
-        anchors.right: parent.right
+        id: toggleRow
         spacing: 8
 
         Repeater {

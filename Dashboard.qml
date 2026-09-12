@@ -70,7 +70,8 @@ Item {
       id: clock
       readonly property var parts: root.notch.clockParts(root.now)
       anchors.left: parent.left
-      anchors.verticalCenter: parent.verticalCenter
+      // Bottom of the digits' ink sits on the bottom of the toggle row.
+      y: trailing.y + trailing.height - height + Math.round((height - digits.baselineOffset) * 0.55)
       width: face.width
       height: face.height
       Row {
@@ -108,6 +109,7 @@ Item {
 
     // Trailing column: battery detail over the Control Center style toggles.
     Column {
+      id: trailing
       anchors.right: parent.right
       anchors.verticalCenter: parent.verticalCenter
       spacing: 7

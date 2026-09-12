@@ -2,7 +2,7 @@
 // tests and under QML's JavaScript engine unchanged.
 
 var DEFAULTS = {
-  notchWidth: 190,
+  notchWidth: 184,
   notchHeight: 32,
   hoverDelay: 120,
   leaveDelay: 350,

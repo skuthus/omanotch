@@ -50,7 +50,7 @@ All keys live on the `skuthus.omanotch` entry in `plugins[]` of
 
 | Key | Default | Meaning |
 | --- | --- | --- |
-| `notchWidth` | 190 | Island width in logical px (set by calibration) |
+| `notchWidth` | 184 | Island width in logical px (set by calibration) |
 | `notchHeight` | 32 | Island height in logical px (set by calibration) |
 | `hoverDelay` | 120 | ms the pointer rests on the island before it expands |
 | `leaveDelay` | 350 | ms after the pointer leaves before it collapses |

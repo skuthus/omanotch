@@ -11,12 +11,13 @@ The MacBook notch as a Dynamic Island for Omarchy. Inspired by
   declares itself a clone of the stock `omarchy.osd`, so every OSD the shell
   and its scripts send lands here and the bottom-of-screen card is disabled.
   Removing the plugin restores it.
-- **Dashboard when nothing is playing.** Date and battery on the ears, the
-  clock centred under the notch, level dials for volume, display brightness,
+- **Dashboard when nothing is playing.** Date and battery on the ears, level
+  dials for volume, display brightness,
   keyboard backlight and microphone on the left (scroll to adjust, click
   volume or mic to mute, click the keyboard dial to cycle), and Do Not
-  Disturb, Night Light, Stay Awake and Dictate toggles on the right. Click
-  the clock to switch 12/24 hour time.
+  Disturb, Night Light, Stay Awake and Dictate toggles on the right. Set
+  `showClock` for a clock between the two groups; click it to switch 12/24
+  hour time.
 - **Dictation as a live activity.** Dictate starts voxtype and the island
   shrinks to a pulsing dot, mic glyph and "Listening" pill; hover leaves it
   alone and a click on the pill stops recording. Without voxtype the button
@@ -72,7 +73,7 @@ All keys live on the `skuthus.omanotch` entry in `plugins[]` of
 | `airpods` | true | AirPods connect card |
 | `scrollVolume` | true | Wheel over the island changes volume |
 | `clock24` | false | 24 hour dashboard clock; click the clock to toggle |
-| `showClock` | true | Show the clock on the dashboard; off leaves dials and toggles only |
+| `showClock` | false | Show a clock centred on the dashboard between the dials and toggles |
 | `lowBatteryLevels` | `[20, 10]` | Percentages that trigger a low-battery card |
 
 ## Theming

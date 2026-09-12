@@ -16,7 +16,7 @@ var DEFAULTS = {
   airpods: true,
   scrollVolume: true,
   clock24: false,
-  showClock: true,
+  showClock: false,
   lowBatteryLevels: [20, 10]
 }
 

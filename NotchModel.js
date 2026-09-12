@@ -477,8 +477,16 @@ function pluginEntry(config, pluginId) {
   return null
 }
 
-function clockFormat(clock24) {
-  return clock24 ? "HH:mm" : "h:mm"
+// Qt's "h" only goes 12-hour when the format also carries AM/PM, so the
+// 12-hour face is built by hand: the digits large, the meridiem small.
+function clockParts(hours, minutes, clock24) {
+  var h = Number(hours) || 0
+  var m = Number(minutes) || 0
+  var mm = (m < 10 ? "0" : "") + m
+  if (clock24) return { time: (h < 10 ? "0" : "") + h + ":" + mm, suffix: "" }
+  var twelve = h % 12
+  if (twelve === 0) twelve = 12
+  return { time: twelve + ":" + mm, suffix: h < 12 ? "AM" : "PM" }
 }
 
 function mediaSubtitle(artist, album, app) {
@@ -528,7 +536,7 @@ if (typeof module !== "undefined") {
     calibrationStep: calibrationStep,
     settingsMutator: settingsMutator,
     pluginEntry: pluginEntry,
-    clockFormat: clockFormat,
+    clockParts: clockParts,
     mediaSubtitle: mediaSubtitle,
     progressFraction: progressFraction
   }

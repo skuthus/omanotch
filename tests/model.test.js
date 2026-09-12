@@ -218,10 +218,13 @@ test("settings mutator writes into the plugins entry", () => {
   assert.equal(M.pluginEntry(null, "x"), null)
 })
 
-test("clock format follows the 24 hour setting", () => {
+test("clock parts follow the 24 hour setting", () => {
   assert.equal(M.resolveSettings({}).clock24, false)
-  assert.equal(M.clockFormat(false), "h:mm")
-  assert.equal(M.clockFormat(true), "HH:mm")
+  assert.deepEqual(M.clockParts(21, 5, false), { time: "9:05", suffix: "PM" })
+  assert.deepEqual(M.clockParts(0, 30, false), { time: "12:30", suffix: "AM" })
+  assert.deepEqual(M.clockParts(12, 0, false), { time: "12:00", suffix: "PM" })
+  assert.deepEqual(M.clockParts(9, 7, true), { time: "09:07", suffix: "" })
+  assert.deepEqual(M.clockParts(21, 5, true), { time: "21:05", suffix: "" })
 })
 
 test("media helpers", () => {

@@ -72,13 +72,34 @@ Item {
       anchors.verticalCenter: parent.verticalCenter
       spacing: 0
       // Click the clock to switch between 12 and 24 hour time.
-      Text {
-        text: Qt.formatTime(root.now, root.notch.clockFormat)
-        color: clockTap.pressed ? root.notch.accent : root.notch.ink
-        font.family: root.notch.fontFamily
-        font.pixelSize: root.notch.displaySize
-        font.bold: true
-        textFormat: Text.PlainText
+      Item {
+        id: clock
+        readonly property var parts: root.notch.clockParts(root.now)
+        width: face.width
+        height: face.height
+        Row {
+          id: face
+          spacing: Math.round(root.notch.gap / 2)
+          Text {
+            id: digits
+            text: clock.parts.time
+            color: clockTap.pressed ? root.notch.accent : root.notch.ink
+            font.family: root.notch.fontFamily
+            font.pixelSize: root.notch.displaySize
+            font.bold: true
+            textFormat: Text.PlainText
+          }
+          Text {
+            y: digits.y + digits.baselineOffset - baselineOffset
+            visible: text !== ""
+            text: clock.parts.suffix
+            color: root.notch.inkDim
+            font.family: root.notch.fontFamily
+            font.pixelSize: root.notch.bodySize
+            font.bold: true
+            textFormat: Text.PlainText
+          }
+        }
         MouseArea {
           id: clockTap
           anchors.fill: parent

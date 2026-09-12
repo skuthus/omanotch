@@ -33,7 +33,7 @@ Item {
     shell.mutateShellConfig(Model.settingsMutator(pluginId, patch))
   }
 
-  readonly property string clockFormat: Model.clockFormat(settings.clock24)
+  function clockParts(date) { return Model.clockParts(date.getHours(), date.getMinutes(), settings.clock24) }
   function toggleClockFormat() { setSetting("clock24", !settings.clock24) }
 
   property bool calibrating: false

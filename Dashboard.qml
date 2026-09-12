@@ -79,12 +79,12 @@ Item {
         font.pixelSize: root.notch.displaySize
         font.bold: true
         textFormat: Text.PlainText
-        TapHandler {
+        MouseArea {
           id: clockTap
-          gesturePolicy: TapHandler.ReleaseWithinBounds
-          onTapped: root.notch.toggleClockFormat()
+          anchors.fill: parent
+          cursorShape: Qt.PointingHandCursor
+          onClicked: root.notch.toggleClockFormat()
         }
-        HoverHandler { cursorShape: Qt.PointingHandCursor }
       }
       Text {
         text: root.notch.batteryDetail
@@ -120,14 +120,19 @@ Item {
             font.pixelSize: root.notch.iconSize
             textFormat: Text.PlainText
           }
-          TapHandler { gesturePolicy: TapHandler.ReleaseWithinBounds; onTapped: root.notch.runToggle(toggle.modelData.key) }
-          HoverHandler { id: toggleHover; cursorShape: Qt.PointingHandCursor }
+          MouseArea {
+            id: toggleHover
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: root.notch.runToggle(toggle.modelData.key)
+          }
           Text {
             anchors.top: parent.bottom
             anchors.topMargin: 2
             anchors.horizontalCenter: parent.horizontalCenter
             text: toggle.modelData.label
-            visible: toggleHover.hovered
+            visible: toggleHover.containsMouse
             color: root.notch.inkDim
             font.family: root.notch.fontFamily
             font.pixelSize: root.notch.captionSize - 1

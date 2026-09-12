@@ -600,8 +600,8 @@ Item {
         opacity: island.widened ? 1 : 0
       }
 
-      // Click toggles the card open for touchpad use; content handlers
-      // above take exclusive grabs so their taps never reach this.
+      // Click toggles the card open for touchpad use. Controls on the cards
+      // are MouseAreas, so their presses stop above this one.
       MouseArea {
         anchors.fill: parent
         onClicked: if (!root.calibrating) root.pinned = !root.pinned

@@ -181,8 +181,7 @@ Item {
         font.family: root.notch.fontFamily
         font.pixelSize: root.notch.iconSize
         textFormat: Text.PlainText
-        TapHandler { id: sourceTap; gesturePolicy: TapHandler.ReleaseWithinBounds; onTapped: root.notch.switchSource() }
-        HoverHandler { cursorShape: Qt.PointingHandCursor }
+        MouseArea { id: sourceTap; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: root.notch.switchSource() }
       }
       Text {
         anchors.verticalCenter: parent.verticalCenter
@@ -192,8 +191,7 @@ Item {
         font.family: root.notch.fontFamily
         font.pixelSize: root.notch.iconSize * 1.15
         textFormat: Text.PlainText
-        TapHandler { id: prevTap; gesturePolicy: TapHandler.ReleaseWithinBounds; onTapped: if (root.player && root.player.canGoPrevious) root.player.previous() }
-        HoverHandler { cursorShape: Qt.PointingHandCursor }
+        MouseArea { id: prevTap; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (root.player && root.player.canGoPrevious) root.player.previous() }
       }
       Text {
         anchors.verticalCenter: parent.verticalCenter
@@ -203,8 +201,7 @@ Item {
         font.family: root.notch.fontFamily
         font.pixelSize: root.notch.iconSize * 1.6
         textFormat: Text.PlainText
-        TapHandler { id: playTap; gesturePolicy: TapHandler.ReleaseWithinBounds; onTapped: if (root.player && root.player.canTogglePlaying) root.player.togglePlaying() }
-        HoverHandler { cursorShape: Qt.PointingHandCursor }
+        MouseArea { id: playTap; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (root.player && root.player.canTogglePlaying) root.player.togglePlaying() }
       }
       Text {
         anchors.verticalCenter: parent.verticalCenter
@@ -214,8 +211,7 @@ Item {
         font.family: root.notch.fontFamily
         font.pixelSize: root.notch.iconSize * 1.15
         textFormat: Text.PlainText
-        TapHandler { id: nextTap; gesturePolicy: TapHandler.ReleaseWithinBounds; onTapped: if (root.player && root.player.canGoNext) root.player.next() }
-        HoverHandler { cursorShape: Qt.PointingHandCursor }
+        MouseArea { id: nextTap; anchors.fill: parent; cursorShape: Qt.PointingHandCursor; onClicked: if (root.player && root.player.canGoNext) root.player.next() }
       }
     }
   }

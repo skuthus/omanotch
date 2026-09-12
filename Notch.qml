@@ -475,7 +475,16 @@ Item {
     }
   }
 
-  readonly property var islandSize: Model.islandSize(islandState, settings, {
+  // Geometry follows the live calibration values, not the saved ones.
+  readonly property var geometry: {
+    var g = {}
+    for (var k in settings) g[k] = settings[k]
+    g.notchWidth = notchWidth
+    g.notchHeight = notchHeight
+    return g
+  }
+
+  readonly property var islandSize: Model.islandSize(islandState, geometry, {
     kind: currentEvent ? currentEvent.kind : "",
     hasProgress: currentEvent ? currentEvent.hasProgress === true : false,
     textWidth: eventMetrics.advanceWidth,

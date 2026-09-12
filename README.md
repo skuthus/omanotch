@@ -12,10 +12,12 @@ The MacBook notch as a Dynamic Island for Omarchy. Inspired by
   and its scripts send lands here and the bottom-of-screen card is disabled.
   Removing the plugin restores it.
 - **Dashboard when nothing is playing.** Date and battery on the ears, the
-  clock centred under the notch, level dials for volume, display brightness
-  and keyboard backlight on the left (scroll to adjust, click volume to mute
-  or the keyboard dial to cycle), and Do Not Disturb, Night Light and Stay
-  Awake toggles on the right. Click the clock to switch 12/24 hour time.
+  clock centred under the notch, level dials for volume, display brightness,
+  keyboard backlight and microphone on the left (scroll to adjust, click
+  volume or mic to mute, click the keyboard dial to cycle), and Do Not
+  Disturb, Night Light, Stay Awake and Dictate toggles on the right. Dictate
+  toggles voxtype recording, or opens Omarchy's voxtype installer when it is
+  not installed. Click the clock to switch 12/24 hour time.
 - **Cards for things that happen.** Charger plugged or pulled, low battery at
   20 % and 10 %, AirPods connecting (per-pod and case battery via the omapods
   daemon's state file), notification previews, and status flashes for Caps

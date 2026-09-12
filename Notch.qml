@@ -408,33 +408,66 @@ Item {
     onTriggered: { if (root.backlightPath) backlightFile.reload(); kbdFile.reload() }
   }
 
+  readonly property real micLevel: micNode && micNode.audio ? Number(micNode.audio.volume) || 0 : 0
+
+  // Dictation through voxtype: state streams from omarchy-voxtype-status;
+  // without voxtype the button opens Omarchy's installer instead.
+  property bool voxtypePresent: false
+  property string dictationState: "idle"
+  Process {
+    command: ["sh", "-c", "command -v voxtype >/dev/null 2>&1"]
+    running: true
+    onExited: function(code) { root.voxtypePresent = code === 0 }
+  }
+  Process {
+    command: ["bash", "-c", "omarchy-voxtype-status"]
+    running: root.voxtypePresent
+    stdout: SplitParser {
+      onRead: function(line) {
+        try {
+          var data = JSON.parse(line)
+          root.dictationState = String(data.alt || data["class"] || "idle")
+        } catch (e) {}
+      }
+    }
+  }
+  readonly property bool dictating: dictationState === "recording" || dictationState === "transcribing"
+
   readonly property var dials: [
     { key: "volume", icon: volumeMuted ? "󰖁" : (volumeLevel < 0.34 ? "󰕿" : (volumeLevel < 0.67 ? "󰖀" : "󰕾")), level: volumeLevel, active: !volumeMuted },
     { key: "brightness", icon: "󰃟", level: backlightLevel, active: true },
-    { key: "keyboard", icon: "󰌌", level: kbdLevel, active: kbdLevel > 0 }
+    { key: "keyboard", icon: "󰌌", level: kbdLevel, active: kbdLevel > 0 },
+    { key: "mic", icon: micMuted ? "󰍭" : "󰍬", level: micLevel, active: !micMuted }
   ]
 
   function adjustDial(key, delta) {
     if (key === "volume") Quickshell.execDetached(["omarchy-audio-output-volume", delta > 0 ? "raise" : "lower"])
     else if (key === "brightness") Quickshell.execDetached(["omarchy-brightness-display", delta > 0 ? "+5%" : "5%-"])
     else if (key === "keyboard") Quickshell.execDetached(["omarchy-brightness-keyboard", delta > 0 ? "up" : "down"])
+    else if (key === "mic") Quickshell.execDetached(["wpctl", "set-volume", "-l", "1.0", "@DEFAULT_AUDIO_SOURCE@", delta > 0 ? "5%+" : "5%-"])
   }
 
   function tapDial(key) {
     if (key === "volume") Quickshell.execDetached(["omarchy-audio-output-volume", "mute-toggle"])
     else if (key === "keyboard") Quickshell.execDetached(["omarchy-brightness-keyboard", "cycle"])
+    else if (key === "mic") Quickshell.execDetached(["omarchy-audio-input-mute"])
   }
 
   readonly property var toggles: [
     { key: "dnd", icon: dnd ? "󰂛" : "󰂚", label: "Do Not Disturb", active: dnd },
     { key: "nightlight", icon: "󰖔", label: "Night Light", active: nightlightOn },
-    { key: "stayawake", icon: "󰅶", label: "Stay Awake", active: stayAwake }
+    { key: "stayawake", icon: "󰅶", label: "Stay Awake", active: stayAwake },
+    { key: "dictate", icon: dictationState === "transcribing" ? "󰔟" : "󰍬", label: "Dictate", active: dictating }
   ]
 
   function runToggle(key) {
     if (key === "dnd" && notifications) notifications.setDoNotDisturb(!dnd)
     else if (key === "nightlight" && nightlight) nightlight.setNightlight(!nightlightOn)
     else if (key === "stayawake" && idle) idle.setIdleEnabled(stayAwake)
+    else if (key === "dictate") {
+      if (voxtypePresent) Quickshell.execDetached(["voxtype", "record", "toggle"])
+      else Quickshell.execDetached(["omarchy-launch-floating-terminal-with-presentation", "omarchy-voxtype-install"])
+    }
   }
 
   // ------------------------------------------------------ event queue

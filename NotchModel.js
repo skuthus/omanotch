@@ -432,7 +432,7 @@ function islandSize(state, s, content) {
   if (state === "expanded") {
     var mode = c.mode || "dashboard"
     var eh = mode === "media" ? Math.round(h * 4.4) : Math.round(h * 2.7)
-    var ew = mode === "media" ? Math.round(w * 2.2) : (c.showClock === false ? Math.round(w * 1.65) : Math.round(w * 2.45))
+    var ew = mode === "media" ? Math.round(w * 2.2) : (c.showClock === false ? Math.round(w * 1.95) : Math.round(w * 2.55))
     return { width: Math.max(w + 2 * wing * 2, ew), height: eh, radius: Math.round(h * 0.8) }
   }
   if (state === "calibrate") {

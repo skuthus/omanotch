@@ -20,7 +20,6 @@ Item {
   property var manifest: null
 
   readonly property string pluginId: manifest && manifest.id ? String(manifest.id) : "skuthus.omanotch"
-  readonly property string stateDir: (Quickshell.env("XDG_STATE_HOME") || (Quickshell.env("HOME") + "/.local/state")) + "/omarchy/omanotch"
 
   // ------------------------------------------------------------ settings
 
@@ -136,7 +135,6 @@ Item {
   readonly property int visualizerBars: 4
   property var levels: []
   property bool cavaAvailable: false
-  property bool cavaConfReady: false
   readonly property string visualizerMode: Model.visualizerMode(settings.visualizer, cavaAvailable)
   readonly property bool wantLevels: mediaPlaying && visualizerMode !== "off"
     && (islandState === "compact" || islandState === "expanded")
@@ -148,25 +146,12 @@ Item {
     onExited: function(code) { root.cavaAvailable = code === 0 }
   }
 
-  Process {
-    id: stateDirMaker
-    command: ["mkdir", "-p", root.stateDir]
-    running: true
-    onExited: cavaConf.setText(Model.cavaConfig(root.visualizerBars, 30))
-  }
-
-  FileView {
-    id: cavaConf
-    path: root.stateDir + "/cava.conf"
-    printErrors: false
-    onSaved: root.cavaConfReady = true
-    onSaveFailed: function(error) { console.warn("omanotch: cava config write failed:", error) }
-  }
-
+  // The config rides in as a process substitution, so nothing is written
+  // to disk and cava starts the moment it is wanted.
   Process {
     id: cava
-    command: ["cava", "-p", cavaConf.path]
-    running: root.wantLevels && root.visualizerMode === "cava" && root.cavaConfReady
+    command: ["bash", "-c", "exec cava -p <(printf '%s' \"$1\")", "_", Model.cavaConfig(root.visualizerBars, 30)]
+    running: root.wantLevels && root.visualizerMode === "cava"
     stdout: SplitParser {
       onRead: function(line) { root.levels = Model.parseCavaLine(line, root.visualizerBars, 100) }
     }

@@ -380,7 +380,7 @@ function cavaConfig(bars, framerate) {
     "bars = " + bars,
     "framerate = " + (framerate || 30),
     "autosens = 1",
-    "sensitivity = 100",
+    "sensitivity = 200",
     "[input]",
     "method = pipewire",
     "source = auto",

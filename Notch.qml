@@ -178,34 +178,52 @@ Item {
 
   // ------------------------------------------------------------- battery
 
+  // The device state is the source of truth: it distinguishes charging from
+  // plugged-in-but-holding and from full, and UPower's onBattery flag lags
+  // it at startup. (Do not name a property onBattery: QML reads the "on"
+  // prefix as a signal handler and the binding silently misbehaves.)
   readonly property var battery: UPower.displayDevice
-  readonly property int batteryPercent: battery && battery.isPresent ? Math.round(Number(battery.percentage || 0) * 100) : -1
-  readonly property bool onBattery: UPower.onBattery === true
-  readonly property bool batteryLow: batteryPercent >= 0 && batteryPercent <= 20 && onBattery
-  readonly property string batteryIcon: batteryPercent >= 0 ? Model.batteryIcon(batteryPercent, !onBattery) : ""
+  readonly property int batteryState: battery ? Number(battery.state) : UPowerDeviceState.Unknown
+  readonly property bool batteryPresent: battery ? battery.isPresent === true : false
+  readonly property int batteryPercent: batteryPresent ? Math.round(Number(battery.percentage || 0) * 100) : -1
+  readonly property bool batteryCharging: batteryState === UPowerDeviceState.Charging
+  readonly property bool usingBattery: {
+    if (batteryState === UPowerDeviceState.Discharging) return true
+    if (batteryState === UPowerDeviceState.Charging
+        || batteryState === UPowerDeviceState.PendingCharge
+        || batteryState === UPowerDeviceState.FullyCharged) return false
+    return UPower.onBattery === true
+  }
+  readonly property bool batteryLow: batteryPercent >= 0 && batteryPercent <= 20 && usingBattery
+  readonly property string batteryIcon: batteryPercent >= 0 ? Model.batteryIcon(batteryPercent, !usingBattery) : ""
   readonly property string batteryDetail: {
-    if (!battery || !battery.isPresent) return ""
-    var t = onBattery ? Model.formatDuration(battery.timeToEmpty) : Model.formatDuration(battery.timeToFull)
-    if (!onBattery) return t ? t + " until full" : "Charging"
-    return t ? t + " remaining" : "On battery"
+    if (!batteryPresent) return ""
+    if (batteryState === UPowerDeviceState.Charging) {
+      var full = Model.formatDuration(battery.timeToFull)
+      return full ? full + " until full" : "Charging"
+    }
+    if (batteryState === UPowerDeviceState.PendingCharge) return "Plugged in, not charging"
+    if (batteryState === UPowerDeviceState.FullyCharged) return "Fully charged"
+    if (batteryState === UPowerDeviceState.Discharging) {
+      var left = Model.formatDuration(battery.timeToEmpty)
+      return left ? left + " remaining" : "On battery"
+    }
+    return usingBattery ? "On battery" : "Plugged in"
   }
   property var lowWarned: []
 
   function checkLowBattery() {
     if (!settings.batteryEvents || batteryPercent < 0) return
-    var r = Model.lowBatteryCheck(batteryPercent, onBattery, settings.lowBatteryLevels, lowWarned)
+    var r = Model.lowBatteryCheck(batteryPercent, usingBattery, settings.lowBatteryLevels, lowWarned)
     lowWarned = r.warned
     if (r.event && settled) pushEvent(r.event)
   }
 
-  Connections {
-    target: UPower
-    function onOnBatteryChanged() {
-      if (!root.settled || !root.settings.batteryEvents || root.batteryPercent < 0) return
-      var seconds = root.onBattery ? root.battery.timeToEmpty : root.battery.timeToFull
-      root.pushEvent(Model.powerSourceEvent(root.onBattery, root.batteryPercent, seconds, root.settings.eventDuration))
-      root.checkLowBattery()
-    }
+  onUsingBatteryChanged: {
+    if (!settled || !settings.batteryEvents || batteryPercent < 0) return
+    var seconds = usingBattery ? battery.timeToEmpty : battery.timeToFull
+    pushEvent(Model.powerSourceEvent(usingBattery, batteryPercent, seconds, settings.eventDuration))
+    checkLowBattery()
   }
   onBatteryPercentChanged: checkLowBattery()
 
@@ -418,7 +436,15 @@ Item {
         state: root.islandState, notchWidth: root.notchWidth, notchHeight: root.notchHeight,
         visualizer: root.visualizerMode, cava: root.cavaAvailable, media: root.hasMedia,
         playing: root.mediaPlaying, event: root.currentEvent ? root.currentEvent.kind : "",
-        queued: root.queue.length, screen: root.notchScreen ? root.notchScreen.name : ""
+        queued: root.queue.length, screen: root.notchScreen ? root.notchScreen.name : "",
+        battery: {
+          present: root.batteryPresent, upowerOnBattery: UPower.onBattery === true,
+          usingBattery: root.usingBattery, state: root.batteryState,
+          percent: root.batteryPercent, timeToEmpty: root.battery ? root.battery.timeToEmpty : 0,
+          timeToFull: root.battery ? root.battery.timeToFull : 0,
+          isLaptop: root.battery ? root.battery.isLaptopBattery === true : false,
+          devices: UPower.devices && UPower.devices.values ? UPower.devices.values.length : -1
+        }
       })
     }
     function ping(): string { return "ok" }

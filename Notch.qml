@@ -53,11 +53,11 @@ Item {
   readonly property int captionSize: Style.font.caption
   readonly property int bodySize: Style.font.body
   readonly property int iconSize: Style.font.iconLarge
-  readonly property int displaySize: Style.font.displayLarge
-  readonly property int pad: Style.space(12)
+  readonly property int displaySize: Style.font.display
+  readonly property int pad: Style.space(10)
   readonly property int gap: Style.space(8)
   readonly property int trackHeight: Math.max(3, Style.space(4))
-  readonly property int toggleSize: Style.space(30)
+  readonly property int toggleSize: Style.space(26)
 
   function luminance(c) { return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b }
   function legibleOnIsland(c, fallback) { return luminance(c) >= 0.55 ? c : fallback }

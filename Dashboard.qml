@@ -65,16 +65,21 @@ Item {
     width: root.width - root.inset * 2
     height: root.height - root.strip - Math.round(root.inset * 0.75)
 
-    // Leading: level dials, mirroring the toggles on the trailing side.
+    // One row, evenly spaced across the card: dials, reminder (and the
+    // clock when enabled), toggles.
     Row {
-      id: leading
-      anchors.left: parent.left
+      id: controls
+      anchors.horizontalCenter: parent.horizontalCenter
       anchors.verticalCenter: parent.verticalCenter
-      spacing: 8
+      readonly property int items: 9 + (clock.visible ? 1 : 0)
+      readonly property real fixedWidth: 9 * root.notch.toggleSize + (clock.visible ? clock.width : 0)
+      spacing: Math.max(6, Math.floor((body.width - fixedWidth) / (items - 1)))
+
       Repeater {
         model: root.notch.dials
         LevelDial {
           required property var modelData
+          anchors.verticalCenter: parent.verticalCenter
           notch: root.notch
           icon: modelData.icon
           level: modelData.level
@@ -83,14 +88,6 @@ Item {
           onTapped: root.notch.tapDial(modelData.key)
         }
       }
-    }
-
-    // Centre: the reminder button, with the clock beside it when enabled.
-    Row {
-      id: centre
-      anchors.horizontalCenter: parent.horizontalCenter
-      anchors.verticalCenter: parent.verticalCenter
-      spacing: 14
 
       Item {
         id: clock
@@ -156,45 +153,32 @@ Item {
           onClicked: root.notch.runToggle("reminder")
         }
       }
-    }
 
-    // Trailing: the Control Center style toggles.
-    Item {
-      id: trailing
-      anchors.right: parent.right
-      anchors.verticalCenter: parent.verticalCenter
-      width: toggleRow.width
-      height: toggleRow.height
-
-      Row {
-        id: toggleRow
-        spacing: 8
-
-        Repeater {
-          model: root.notch.toggles
-          Rectangle {
-            id: toggle
-            required property var modelData
-            width: root.notch.toggleSize
-            height: root.notch.toggleSize
-            radius: width / 2
-            color: modelData.active ? root.notch.accent : (toggleHover.containsMouse ? root.notch.trackHover : root.notch.track)
-            Behavior on color { ColorAnimation { duration: 120 } }
-            Text {
-              anchors.centerIn: parent
-              text: toggle.modelData.icon
-              color: toggle.modelData.active ? root.notch.islandColor : root.notch.ink
-              font.family: root.notch.fontFamily
-              font.pixelSize: root.notch.iconSize - 2
-              textFormat: Text.PlainText
-            }
-            MouseArea {
-              id: toggleHover
-              anchors.fill: parent
-              hoverEnabled: true
-              cursorShape: Qt.PointingHandCursor
-              onClicked: root.notch.runToggle(toggle.modelData.key)
-            }
+      Repeater {
+        model: root.notch.toggles
+        Rectangle {
+          id: toggle
+          required property var modelData
+          anchors.verticalCenter: parent.verticalCenter
+          width: root.notch.toggleSize
+          height: root.notch.toggleSize
+          radius: width / 2
+          color: modelData.active ? root.notch.accent : (toggleHover.containsMouse ? root.notch.trackHover : root.notch.track)
+          Behavior on color { ColorAnimation { duration: 120 } }
+          Text {
+            anchors.centerIn: parent
+            text: toggle.modelData.icon
+            color: toggle.modelData.active ? root.notch.islandColor : root.notch.ink
+            font.family: root.notch.fontFamily
+            font.pixelSize: root.notch.iconSize - 2
+            textFormat: Text.PlainText
+          }
+          MouseArea {
+            id: toggleHover
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: root.notch.runToggle(toggle.modelData.key)
           }
         }
       }

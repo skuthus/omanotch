@@ -15,9 +15,12 @@ The MacBook notch as a Dynamic Island for Omarchy. Inspired by
   clock centred under the notch, level dials for volume, display brightness,
   keyboard backlight and microphone on the left (scroll to adjust, click
   volume or mic to mute, click the keyboard dial to cycle), and Do Not
-  Disturb, Night Light, Stay Awake and Dictate toggles on the right. Dictate
-  toggles voxtype recording, or opens Omarchy's voxtype installer when it is
-  not installed. Click the clock to switch 12/24 hour time.
+  Disturb, Night Light, Stay Awake and Dictate toggles on the right. Click
+  the clock to switch 12/24 hour time.
+- **Dictation as a live activity.** Dictate starts voxtype and the island
+  shrinks to a pulsing dot, mic glyph and "Listening" pill; hover leaves it
+  alone and a click on the pill stops recording. Without voxtype the button
+  opens Omarchy's installer.
 - **Cards for things that happen.** Charger plugged or pulled, low battery at
   20 % and 10 %, AirPods connecting (per-pod and case battery via the omapods
   daemon's state file), notification previews, and status flashes for Caps
@@ -102,7 +105,8 @@ omarchy-shell omanotch calibrate   # enter calibration
 omarchy-shell omanotch expand      # pin the card open
 omarchy-shell omanotch collapse
 omarchy-shell omanotch toggle
-omarchy-shell omanotch state       # idle | compact | event | expanded | calibrate
+omarchy-shell omanotch state       # idle | compact | activity | event | expanded | calibrate
+omarchy-shell omanotch dictation recording   # drive the dictation pill by hand (recording | transcribing | idle)
 omarchy-shell omanotch status      # JSON snapshot for debugging
 omarchy-shell osd show '{"icon":"volume","value":"40"}'   # the stock OSD contract
 ```

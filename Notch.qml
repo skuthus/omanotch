@@ -432,6 +432,8 @@ Item {
     }
   }
   readonly property bool dictating: dictationState === "recording" || dictationState === "transcribing"
+  readonly property string dictationLabel: Model.dictationLabel(dictationState)
+  function setDictationState(state) { dictationState = String(state || "idle") }
 
   readonly property var dials: [
     { key: "volume", icon: volumeMuted ? "󰖁" : (volumeLevel < 0.34 ? "󰕿" : (volumeLevel < 0.67 ? "󰖀" : "󰕾")), level: volumeLevel, active: !volumeMuted },
@@ -465,8 +467,12 @@ Item {
     else if (key === "nightlight" && nightlight) nightlight.setNightlight(!nightlightOn)
     else if (key === "stayawake" && idle) idle.setIdleEnabled(stayAwake)
     else if (key === "dictate") {
-      if (voxtypePresent) Quickshell.execDetached(["voxtype", "record", "toggle"])
-      else Quickshell.execDetached(["omarchy-launch-floating-terminal-with-presentation", "omarchy-voxtype-install"])
+      if (voxtypePresent) {
+        Quickshell.execDetached(["voxtype", "record", "toggle"])
+        if (!dictating) minimizeUntilPointerLeaves()
+      } else {
+        Quickshell.execDetached(["omarchy-launch-floating-terminal-with-presentation", "omarchy-voxtype-install"])
+      }
     }
   }
 
@@ -536,6 +542,7 @@ Item {
     function collapse(): string { root.pinned = false; root.hovered = false; return "ok" }
     function toggle(): string { root.pinned = !root.pinned; return root.pinned ? "expanded" : "collapsed" }
     function state(): string { return root.islandState }
+    function dictation(state: string): string { root.setDictationState(state); return root.islandState }
     function status(): string {
       return JSON.stringify({
         state: root.islandState, notchWidth: root.notchWidth, notchHeight: root.notchHeight,
@@ -584,14 +591,33 @@ Item {
 
   property bool hovered: false
   property bool pinned: false
-  readonly property bool expanded: (hovered || pinned) && !calibrating
+  // Set when a card action wants the island small although the pointer is
+  // still on it; cleared once the pointer leaves.
+  property bool hoverSuppressed: false
+  readonly property bool expanded: (hovered || pinned) && !calibrating && !hoverSuppressed
+
+  function minimizeUntilPointerLeaves() {
+    hoverTimer.stop()
+    hovered = false
+    pinned = false
+    hoverSuppressed = true
+  }
   readonly property string expandedMode: hasMedia ? "media" : "dashboard"
   readonly property string islandState: Model.resolveState({
-    calibrating: calibrating, event: currentEvent, expanded: expanded, mediaPlaying: mediaPlaying
+    calibrating: calibrating, event: currentEvent, expanded: expanded, mediaPlaying: mediaPlaying,
+    activity: dictating
   })
 
   // OSD events keep showing inside the expanded card instead of collapsing it.
   readonly property var inlineOsd: expanded && currentEvent && currentEvent.kind === "osd" ? currentEvent : null
+
+  TextMetrics {
+    id: activityMetrics
+    font.family: root.fontFamily
+    font.pixelSize: root.captionSize
+    font.weight: Font.Medium
+    text: root.dictationLabel
+  }
 
   TextMetrics {
     id: eventMetrics
@@ -619,7 +645,7 @@ Item {
   readonly property var islandSize: Model.islandSize(islandState, geometry, {
     kind: currentEvent ? currentEvent.kind : "",
     hasProgress: currentEvent ? currentEvent.hasProgress === true : false,
-    textWidth: eventMetrics.advanceWidth,
+    textWidth: islandState === "activity" ? activityMetrics.advanceWidth : eventMetrics.advanceWidth,
     pad: pad,
     mode: expandedMode,
     showClock: settings.showClock
@@ -645,8 +671,8 @@ Item {
   }
 
   function setPointerInside(inside) {
-    if (inside) { leaveTimer.stop(); if (!hovered) hoverTimer.restart() }
-    else { hoverTimer.stop(); if (hovered || pinned) leaveTimer.restart() }
+    if (inside) { leaveTimer.stop(); if (!hovered && !hoverSuppressed) hoverTimer.restart() }
+    else { hoverTimer.stop(); hoverSuppressed = false; if (hovered || pinned) leaveTimer.restart() }
   }
 
   property real wheelAccumulator: 0
@@ -736,7 +762,11 @@ Item {
       // are MouseAreas, so their presses stop above this one.
       MouseArea {
         anchors.fill: parent
-        onClicked: if (!root.calibrating) root.pinned = !root.pinned
+        onClicked: {
+          if (root.calibrating) return
+          if (root.islandState === "activity") root.runToggle("dictate")
+          else root.pinned = !root.pinned
+        }
       }
       HoverHandler {
         onHoveredChanged: root.setPointerInside(hovered)
@@ -752,6 +782,17 @@ Item {
         anchors.fill: parent
         notch: root
         opacity: root.islandState === "compact" ? 1 : 0
+        visible: opacity > 0
+        Behavior on opacity { NumberAnimation { duration: 160 } }
+      }
+
+      ActivityRow {
+        anchors.fill: parent
+        notch: root
+        icon: root.dictationState === "transcribing" ? "󰔟" : "󰍬"
+        label: root.dictationLabel
+        pulsing: root.dictationState === "recording"
+        opacity: root.islandState === "activity" ? 1 : 0
         visible: opacity > 0
         Behavior on opacity { NumberAnimation { duration: 160 } }
       }

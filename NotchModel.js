@@ -20,7 +20,7 @@ var DEFAULTS = {
   lowBatteryLevels: [20, 10]
 }
 
-var STATES = ["idle", "compact", "event", "expanded", "calibrate"]
+var STATES = ["idle", "compact", "activity", "expanded", "event", "calibrate"]
 
 function clamp(value, min, max) {
   return Math.max(min, Math.min(max, value))
@@ -133,11 +133,14 @@ function osdEventFromPayload(payloadJson, defaultDuration) {
 
 // --------------------------------------------------------------- events
 
-// Which state the island should be in. Higher entries win.
+// Which state the island should be in. Higher entries win. A live
+// activity (dictation) holds the island small: hover does not open the
+// card over it, and OSDs interrupt it briefly as pills.
 function resolveState(ctx) {
   if (ctx.calibrating) return "calibrate"
-  if (ctx.event && ctx.expanded && ctx.event.kind === "osd") return "expanded"
+  if (ctx.event && ctx.expanded && !ctx.activity && ctx.event.kind === "osd") return "expanded"
   if (ctx.event) return "event"
+  if (ctx.activity) return "activity"
   if (ctx.expanded) return "expanded"
   if (ctx.mediaPlaying) return "compact"
   return "idle"
@@ -429,6 +432,10 @@ function islandSize(state, s, content) {
     var es = Math.max(wing + 8, Math.round(c.textWidth || 0) + 2 * (c.pad || 12))
     return { width: w + 2 * es, height: h, radius: Math.round(h * 0.45) }
   }
+  if (state === "activity") {
+    var as = Math.max(wing + 8, Math.round(c.textWidth || 0) + 2 * (c.pad || 12))
+    return { width: w + 2 * as, height: h, radius: Math.round(h / 2) }
+  }
   if (state === "expanded") {
     var mode = c.mode || "dashboard"
     var eh = mode === "media" ? Math.round(h * 4.4) : Math.round(h * 2.7)
@@ -481,6 +488,12 @@ function pluginEntry(config, pluginId) {
 
 // Qt's "h" only goes 12-hour when the format also carries AM/PM, so the
 // 12-hour face is built by hand: the digits large, the meridiem small.
+function dictationLabel(state) {
+  if (state === "recording") return "Listening"
+  if (state === "transcribing") return "Transcribing"
+  return ""
+}
+
 function clockParts(hours, minutes, clock24) {
   var h = Number(hours) || 0
   var m = Number(minutes) || 0
@@ -539,6 +552,7 @@ if (typeof module !== "undefined") {
     settingsMutator: settingsMutator,
     pluginEntry: pluginEntry,
     clockParts: clockParts,
+    dictationLabel: dictationLabel,
     mediaSubtitle: mediaSubtitle,
     progressFraction: progressFraction
   }

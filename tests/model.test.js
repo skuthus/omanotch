@@ -38,7 +38,7 @@ test("osd payload with a message has no progress and honours duration", () => {
 
 test("icon table covers the named glyphs and falls back to raw text", () => {
   assert.equal(M.iconFor("Keyboard", 0), "󰌌")
-  assert.equal(M.iconFor("brightness", 0), "󰍹")
+  assert.equal(M.iconFor("brightness", 0), "󰃟")
   assert.equal(M.iconFor("X", 0), "X")
   assert.equal(M.iconFor("", 0), "󰖁")
   assert.equal(M.iconFor("", 50), "󰖀")
@@ -182,7 +182,7 @@ test("island sizes grow symmetrically from the notch", () => {
   assert.deepEqual([M.islandSize("calibrate", s).width], [200])
   const compact = M.islandSize("compact", s)
   assert.ok(compact.width > 200 && compact.height === 32)
-  assert.ok(M.islandSize("event", s, { kind: "osd", hasProgress: true }).width > compact.width)
+  assert.ok(M.islandSize("event", s, { kind: "osd", hasProgress: true }).width >= compact.width)
   assert.ok(M.islandSize("event", s, { kind: "osd", hasProgress: false, textWidth: 400 }).width > 500)
   assert.ok(M.islandSize("event", s, { kind: "flash", textWidth: 10 }).width > 200)
   assert.ok(M.islandSize("event", s, { kind: "battery", textWidth: 120 }).width > 200)

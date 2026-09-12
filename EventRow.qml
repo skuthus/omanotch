@@ -14,18 +14,31 @@ Item {
   readonly property string message: event ? String(event.message || "") : ""
   readonly property bool urgent: event ? event.urgent === true : false
 
-  // Left ear: the glyph, centred.
+  // Left ear: the glyph, centred; ringed by the level for progress OSDs.
   Item {
     x: 0
     width: root.earWidth
     height: parent.height
     Text {
       anchors.centerIn: parent
+      visible: !root.progress
       text: root.event ? String(root.event.icon || "") : ""
       color: root.urgent ? root.notch.urgentInk : root.notch.ink
       font.family: root.notch.fontFamily
       font.pixelSize: root.notch.iconSize
       textFormat: Text.PlainText
+    }
+    LevelRing {
+      anchors.centerIn: parent
+      visible: root.progress
+      width: Math.round(parent.height * 0.72)
+      height: width
+      notch: root.notch
+      icon: root.event ? String(root.event.icon || "") : ""
+      level: root.progress ? root.event.value / root.event.max : 0
+      active: !(root.event && root.event.iconKey && root.event.iconKey.indexOf("mute") !== -1)
+      glyphSize: root.notch.captionSize + 1
+      stroke: 2
     }
   }
 
@@ -35,36 +48,17 @@ Item {
     width: root.earWidth
     height: parent.height
 
-    Row {
+    // The readout alone, at the glyph's weight, so the two ears balance.
+    Text {
       visible: root.progress
       anchors.centerIn: parent
-      spacing: root.notch.gap
-      Rectangle {
-        anchors.verticalCenter: parent.verticalCenter
-        width: Math.max(20, root.earWidth - root.notch.pad * 2 - percentLabel.width - parent.spacing)
-        height: root.notch.trackHeight
-        radius: height / 2
-        color: root.notch.track
-        Rectangle {
-          height: parent.height
-          radius: parent.radius
-          width: parent.width * (root.progress ? root.event.value / root.event.max : 0)
-          color: root.notch.accent
-          Behavior on width { NumberAnimation { duration: 120; easing.type: Easing.OutCubic } }
-        }
-      }
-      Text {
-        id: percentLabel
-        anchors.verticalCenter: parent.verticalCenter
-        width: root.notch.percentWidth
-        horizontalAlignment: Text.AlignRight
-        text: root.progress ? root.message : ""
-        color: root.notch.ink
-        font.family: root.notch.fontFamily
-        font.pixelSize: root.notch.bodySize
-        font.bold: true
-        textFormat: Text.PlainText
-      }
+      text: root.progress ? root.message : ""
+      color: root.notch.ink
+      font.family: root.notch.fontFamily
+      font.pixelSize: root.notch.bodySize + 1
+      font.weight: Font.DemiBold
+      font.features: { "tnum": 1 }
+      textFormat: Text.PlainText
     }
 
     Row {

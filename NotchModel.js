@@ -69,7 +69,7 @@ function iconFor(name, percent) {
   if (n === "microphone-muted" || n === "microphone-off" || n === "mic-muted" || n === "mic-off") return "󰍭"
   if (n === "microphone" || n === "mic") return "󰍬"
   if (n === "keyboard") return "󰌌"
-  if (n === "brightness" || n === "display") return "󰍹"
+  if (n === "brightness" || n === "display") return "󰃟"
   if (n === "touchpad") return "󰟸"
   if (n === "touch" || n === "touchscreen") return "󰝁"
   if (n === "reboot" || n === "restart") return "󰜉"
@@ -414,7 +414,7 @@ function islandSize(state, s, content) {
   if (state === "event") {
     var kind = c.kind || "osd"
     if (kind === "osd") {
-      var side = c.hasProgress ? Math.max(wing + 8, Math.round(h * 3.6)) : Math.max(wing + 8, Math.round(c.textWidth || 0) + 2 * (c.pad || 12))
+      var side = c.hasProgress ? Math.max(wing + 8, Math.round(h * 2.1)) : Math.max(wing + 8, Math.round(c.textWidth || 0) + 2 * (c.pad || 12))
       return { width: w + 2 * side, height: h, radius: Math.round(h * 0.45) }
     }
     if (kind === "notification") {

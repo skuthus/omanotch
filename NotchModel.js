@@ -409,7 +409,7 @@ function islandSize(state, s, content) {
   var c = content || {}
   var wing = Math.round(h * 1.15)
   if (state === "compact") {
-    return { width: w + 2 * wing + 8, height: h, radius: Math.round(h * 0.45) }
+    return { width: w + 2 * wing + 8, height: h, radius: Math.round(h / 2) }
   }
   if (state === "event") {
     var kind = c.kind || "osd"
@@ -430,8 +430,8 @@ function islandSize(state, s, content) {
   }
   if (state === "expanded") {
     var mode = c.mode || "dashboard"
-    var eh = mode === "media" ? Math.round(h * 4.3) : Math.round(h * 3.0)
-    return { width: Math.max(w + 2 * wing * 2, Math.round(w * 2.15)), height: eh, radius: Math.round(h * 0.7) }
+    var eh = mode === "media" ? Math.round(h * 4.4) : Math.round(h * 3.2)
+    return { width: Math.max(w + 2 * wing * 2, Math.round(w * 2.2)), height: eh, radius: Math.round(h * 0.8) }
   }
   if (state === "calibrate") {
     return { width: w, height: h, radius: Math.round(h * 0.45) }

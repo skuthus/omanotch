@@ -1,14 +1,15 @@
 import QtQuick
 
-// What hovering shows when nothing is playing: date and battery on the
-// ears, a big clock and the quick toggles below the notch.
+// What hovering shows when nothing is playing. Laid out on the card's
+// insets: date and battery on the ears share the same edges as the clock
+// and the controls below them; the clock is the one large element.
 Item {
   id: root
 
   property var notch: null
 
-  readonly property real earWidth: Math.max(0, (width - (notch ? notch.notchWidth : 0)) / 2)
   readonly property int strip: notch ? notch.notchHeight : 32
+  readonly property int inset: notch ? notch.inset : 16
 
   property date now: new Date()
   Timer {
@@ -19,105 +20,98 @@ Item {
     onTriggered: root.now = new Date()
   }
 
-  // Left ear: the date.
-  Item {
-    x: 0
-    width: root.earWidth
-    height: root.strip
+  // Leading ear: the date, on the left inset.
+  Text {
+    x: root.inset
+    y: Math.round((root.strip - height) / 2)
+    text: Qt.formatDate(root.now, "ddd d MMM")
+    color: root.notch.inkDim
+    font.family: root.notch.fontFamily
+    font.pixelSize: root.notch.captionSize
+    font.weight: Font.Medium
+    textFormat: Text.PlainText
+  }
+
+  // Trailing ear: battery, on the right inset.
+  Row {
+    anchors.right: parent.right
+    anchors.rightMargin: root.inset
+    y: Math.round((root.strip - height) / 2)
+    spacing: 4
     Text {
-      anchors.centerIn: parent
-      text: Qt.formatDate(root.now, "ddd d MMM")
+      anchors.verticalCenter: parent.verticalCenter
+      text: root.notch.batteryIcon
+      color: root.notch.batteryLow ? root.notch.urgentInk : root.notch.inkDim
+      font.family: root.notch.fontFamily
+      font.pixelSize: root.notch.captionSize + 2
+      textFormat: Text.PlainText
+    }
+    Text {
+      anchors.verticalCenter: parent.verticalCenter
+      text: root.notch.batteryPercent >= 0 ? root.notch.batteryPercent + "%" : ""
       color: root.notch.inkDim
       font.family: root.notch.fontFamily
       font.pixelSize: root.notch.captionSize
+      font.weight: Font.Medium
+      font.features: { "tnum": 1 }
       textFormat: Text.PlainText
     }
   }
 
-  // Right ear: battery.
   Item {
-    x: root.width - width
-    width: root.earWidth
-    height: root.strip
-    Row {
-      anchors.centerIn: parent
-      spacing: root.notch.gap / 2
-      Text {
-        anchors.verticalCenter: parent.verticalCenter
-        text: root.notch.batteryIcon
-        color: root.notch.batteryLow ? root.notch.urgentInk : root.notch.inkDim
-        font.family: root.notch.fontFamily
-        font.pixelSize: root.notch.captionSize + 2
-        textFormat: Text.PlainText
-      }
-      Text {
-        anchors.verticalCenter: parent.verticalCenter
-        text: root.notch.batteryPercent >= 0 ? root.notch.batteryPercent + "%" : ""
-        color: root.notch.inkDim
-        font.family: root.notch.fontFamily
-        font.pixelSize: root.notch.captionSize
-        textFormat: Text.PlainText
-      }
-    }
-  }
-
-  Item {
-    x: root.notch.pad
+    id: body
+    x: root.inset
     y: root.strip
-    width: root.width - root.notch.pad * 2
-    height: root.height - root.strip
+    width: root.width - root.inset * 2
+    height: root.height - root.strip - Math.round(root.inset * 0.75)
 
-    Column {
+    // The clock: the one large element. Click to switch 12/24 hour.
+    Item {
+      id: clock
+      readonly property var parts: root.notch.clockParts(root.now)
       anchors.left: parent.left
       anchors.verticalCenter: parent.verticalCenter
-      anchors.verticalCenterOffset: -Math.round(root.notch.pad * 0.4)
-      spacing: 0
-      // Click the clock to switch between 12 and 24 hour time.
-      Item {
-        id: clock
-        readonly property var parts: root.notch.clockParts(root.now)
-        width: face.width
-        height: face.height
-        Row {
-          id: face
-          spacing: Math.round(root.notch.gap / 2)
-          Text {
-            id: digits
-            text: clock.parts.time
-            color: clockTap.pressed ? root.notch.accent : root.notch.ink
-            font.family: root.notch.fontFamily
-            font.pixelSize: root.notch.displaySize
-            font.bold: true
-            textFormat: Text.PlainText
-          }
-          Text {
-            y: digits.y + digits.baselineOffset - baselineOffset
-            visible: text !== ""
-            text: clock.parts.suffix
-            color: root.notch.inkDim
-            font.family: root.notch.fontFamily
-            font.pixelSize: root.notch.bodySize
-            font.bold: true
-            textFormat: Text.PlainText
-          }
+      width: face.width
+      height: face.height
+      Row {
+        id: face
+        spacing: 5
+        Text {
+          id: digits
+          text: clock.parts.time
+          color: clockTap.pressed ? root.notch.accent : root.notch.ink
+          font.family: root.notch.fontFamily
+          font.pixelSize: root.notch.displaySize + 4
+          font.weight: Font.DemiBold
+          font.letterSpacing: -1
+          font.features: { "tnum": 1 }
+          textFormat: Text.PlainText
         }
-        MouseArea {
-          id: clockTap
-          anchors.fill: parent
-          cursorShape: Qt.PointingHandCursor
-          onClicked: root.notch.toggleClockFormat()
+        Text {
+          y: digits.y + digits.baselineOffset - baselineOffset
+          visible: text !== ""
+          text: clock.parts.suffix
+          color: root.notch.inkDim
+          font.family: root.notch.fontFamily
+          font.pixelSize: root.notch.captionSize + 1
+          font.weight: Font.DemiBold
+          textFormat: Text.PlainText
         }
+      }
+      MouseArea {
+        id: clockTap
+        anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
+        onClicked: root.notch.toggleClockFormat()
       }
     }
 
+    // Trailing column: battery detail over the Control Center style toggles.
     Column {
       anchors.right: parent.right
-      anchors.top: parent.top
-      anchors.bottom: parent.bottom
-      anchors.bottomMargin: Math.round(root.notch.pad * 0.8)
-      spacing: Math.round(root.notch.gap * 0.6)
+      anchors.verticalCenter: parent.verticalCenter
+      spacing: 7
 
-      // Time remaining sits right under the battery readout on the ear.
       Text {
         anchors.right: parent.right
         text: root.notch.batteryDetail
@@ -125,12 +119,13 @@ Item {
         color: root.notch.inkDim
         font.family: root.notch.fontFamily
         font.pixelSize: root.notch.captionSize
+        font.features: { "tnum": 1 }
         textFormat: Text.PlainText
       }
 
       Row {
         anchors.right: parent.right
-        spacing: root.notch.gap
+        spacing: 8
 
         Repeater {
           model: root.notch.toggles
@@ -139,16 +134,15 @@ Item {
             required property var modelData
             width: root.notch.toggleSize
             height: root.notch.toggleSize
-            radius: Math.round(width * 0.3)
-            color: modelData.active ? root.notch.accentFill : root.notch.track
-            border.width: 1
-            border.color: modelData.active ? root.notch.accent : "transparent"
+            radius: width / 2
+            color: modelData.active ? root.notch.accent : (toggleHover.containsMouse ? root.notch.trackHover : root.notch.track)
+            Behavior on color { ColorAnimation { duration: 120 } }
             Text {
               anchors.centerIn: parent
               text: toggle.modelData.icon
-              color: toggle.modelData.active ? root.notch.accent : root.notch.ink
+              color: toggle.modelData.active ? root.notch.islandColor : root.notch.ink
               font.family: root.notch.fontFamily
-              font.pixelSize: root.notch.iconSize
+              font.pixelSize: root.notch.iconSize - 2
               textFormat: Text.PlainText
             }
             MouseArea {
@@ -157,17 +151,6 @@ Item {
               hoverEnabled: true
               cursorShape: Qt.PointingHandCursor
               onClicked: root.notch.runToggle(toggle.modelData.key)
-            }
-            Text {
-              anchors.top: parent.bottom
-              anchors.topMargin: 1
-              anchors.horizontalCenter: parent.horizontalCenter
-              text: toggle.modelData.label
-              visible: toggleHover.containsMouse
-              color: root.notch.inkDim
-              font.family: root.notch.fontFamily
-              font.pixelSize: root.notch.captionSize - 2
-              textFormat: Text.PlainText
             }
           }
         }

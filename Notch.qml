@@ -56,8 +56,10 @@ Item {
   readonly property int displaySize: Style.font.display
   readonly property int pad: Style.space(10)
   readonly property int gap: Style.space(8)
+  // Content inset of the expanded card; leading and trailing items share it.
+  readonly property int inset: Style.space(16)
   readonly property int trackHeight: Math.max(3, Style.space(4))
-  readonly property int toggleSize: Style.space(26)
+  readonly property int toggleSize: Style.space(28)
 
   function luminance(c) { return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b }
   function legibleOnIsland(c, fallback) { return luminance(c) >= 0.55 ? c : fallback }
@@ -66,7 +68,8 @@ Item {
   readonly property color islandColor: Color.pick("omanotch.background", "#000000")
   readonly property color ink: legibleOnIsland(Color.pick("omanotch.text", Color.popups.text), "#f4f4f5")
   readonly property color inkDim: Qt.rgba(ink.r, ink.g, ink.b, 0.58)
-  readonly property color track: Qt.rgba(ink.r, ink.g, ink.b, 0.18)
+  readonly property color track: Qt.rgba(ink.r, ink.g, ink.b, 0.14)
+  readonly property color trackHover: Qt.rgba(ink.r, ink.g, ink.b, 0.22)
   readonly property color urgentInk: liftedOnIsland(Color.pick("omanotch.urgent", Color.urgent))
   readonly property color accent: liftedOnIsland(Color.pick("omanotch.accent", Color.accent))
   readonly property color accentFill: Qt.rgba(accent.r, accent.g, accent.b, 0.22)

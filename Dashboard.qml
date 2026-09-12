@@ -135,7 +135,7 @@ Item {
       Rectangle {
         id: reminder
         anchors.verticalCenter: parent.verticalCenter
-        width: root.notch.toggleSize + 6
+        width: root.notch.toggleSize
         height: width
         radius: width / 2
         color: root.notch.reminderPending ? root.notch.accent : (reminderHover.containsMouse ? root.notch.trackHover : root.notch.track)
@@ -145,7 +145,7 @@ Item {
           text: "󰢌"
           color: root.notch.reminderPending ? root.notch.islandColor : root.notch.ink
           font.family: root.notch.fontFamily
-          font.pixelSize: root.notch.iconSize
+          font.pixelSize: root.notch.iconSize - 2
           textFormat: Text.PlainText
         }
         MouseArea {

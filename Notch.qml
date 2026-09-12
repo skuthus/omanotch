@@ -35,8 +35,12 @@ Item {
 
   // ------------------------------------------------------------- theming
 
-  // The island is black so it blends into the camera cutout whatever the
-  // theme; the accent still comes from the theme, lifted if it would sink.
+  // The island stays black so it blends into the camera cutout, but the ink,
+  // accent and hairline follow the theme the way the shell's popups do. A
+  // theme can steer them directly from an [omanotch] section in shell.toml;
+  // otherwise text comes from the popup text colour when it reads on black,
+  // the accent from the theme accent (lifted if it would sink), and the
+  // border from the popup border.
   readonly property string fontFamily: Style.font.family
   readonly property int captionSize: Style.font.caption
   readonly property int bodySize: Style.font.body
@@ -46,17 +50,25 @@ Item {
   readonly property int gap: Style.space(8)
   readonly property int trackHeight: Math.max(3, Style.space(4))
   readonly property int toggleSize: Style.space(30)
-  readonly property color islandColor: "#000000"
-  readonly property color ink: "#f4f4f5"
-  readonly property color inkDim: Qt.rgba(1, 1, 1, 0.58)
-  readonly property color track: Qt.rgba(1, 1, 1, 0.18)
-  readonly property color urgentInk: Qt.lighter(Color.urgent, 1.35)
-  readonly property color accent: {
-    var c = Color.accent
-    var lum = 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b
-    return lum < 0.4 ? Qt.lighter(c, 1.9) : c
-  }
+
+  function luminance(c) { return 0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b }
+  function legibleOnIsland(c, fallback) { return luminance(c) >= 0.55 ? c : fallback }
+  function liftedOnIsland(c) { return luminance(c) < 0.4 ? Qt.lighter(c, 1.9) : c }
+
+  readonly property color islandColor: Color.pick("omanotch.background", "#000000")
+  readonly property color ink: legibleOnIsland(Color.pick("omanotch.text", Color.popups.text), "#f4f4f5")
+  readonly property color inkDim: Qt.rgba(ink.r, ink.g, ink.b, 0.58)
+  readonly property color track: Qt.rgba(ink.r, ink.g, ink.b, 0.18)
+  readonly property color urgentInk: liftedOnIsland(Color.pick("omanotch.urgent", Color.urgent))
+  readonly property color accent: liftedOnIsland(Color.pick("omanotch.accent", Color.accent))
   readonly property color accentFill: Qt.rgba(accent.r, accent.g, accent.b, 0.22)
+  readonly property color artPlaceholder: Qt.rgba(accent.r, accent.g, accent.b, 0.16)
+  readonly property color artGlyph: Qt.rgba(accent.r, accent.g, accent.b, 0.8)
+  readonly property color borderColor: {
+    var c = Color.pick("omanotch.border", Color.popups.border)
+    var a = Color.pickAlpha("omanotch.border-alpha", 0.35)
+    return Qt.rgba(c.r, c.g, c.b, a)
+  }
   readonly property int percentWidth: Math.ceil(percentMetrics.advanceWidth)
 
   TextMetrics {
@@ -577,6 +589,25 @@ Item {
         bottomRightRadius: root.islandSize.radius
         Behavior on bottomLeftRadius { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
         Behavior on bottomRightRadius { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
+      }
+
+      // Hairline in the theme's popup border colour. Its top edge sits one
+      // pixel above the screen so only the sides and bottom show.
+      Rectangle {
+        x: 0
+        y: -1
+        width: parent.width
+        height: parent.height + 1
+        color: "transparent"
+        border.width: 1
+        border.color: root.borderColor
+        topLeftRadius: 0
+        topRightRadius: 0
+        bottomLeftRadius: shape.bottomLeftRadius
+        bottomRightRadius: shape.bottomRightRadius
+        visible: island.widened && !root.calibrating
+        opacity: island.widened ? 1 : 0
+        Behavior on opacity { NumberAnimation { duration: 160 } }
       }
 
       Fillet {

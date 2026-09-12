@@ -66,6 +66,8 @@ Item {
     height: root.artSize
     radius: Math.round(root.artSize * 0.16)
     source: root.notch.artUrl
+    placeholderColor: root.notch.artPlaceholder
+    glyphColor: root.notch.artGlyph
     fontFamily: root.notch.fontFamily
     glyphSize: root.notch.iconSize * 1.4
   }

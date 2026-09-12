@@ -65,6 +65,33 @@ All keys live on the `skuthus.omanotch` entry in `plugins[]` of
 | `scrollVolume` | true | Wheel over the island changes volume |
 | `lowBatteryLevels` | `[20, 10]` | Percentages that trigger a low-battery card |
 
+## Theming
+
+The island stays black so it blends into the cutout, and everything drawn on
+it follows the active theme the way the shell's popups do:
+
+- text uses the theme's popup text colour when it is legible on black, so a
+  warm or cool white carries through; dim text and tracks derive from it
+- the accent drives progress bars, the visualizer, active toggles, the
+  calibration island and the tint of the empty-art tile, lifted when a theme's
+  accent is too dark to read on black
+- the widened island gets a hairline in the popup border colour, hidden when
+  the island is idle so the notch stays seamless
+- urgent cards (low battery, critical notifications) use the theme's urgent
+  colour
+
+A theme can steer these directly from its `shell.toml`:
+
+```toml
+[omanotch]
+background = "#000000"   # keep this black on a real notch
+text = "#F8EBE3"
+accent = "#A5B5AB"
+urgent = "#F0334A"
+border = "#A5B5AB"
+border-alpha = 0.35
+```
+
 ## IPC
 
 ```bash

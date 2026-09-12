@@ -85,47 +85,76 @@ Item {
       }
     }
 
-    // The clock: the one large element, centred under the notch. Click to
-    // switch 12/24 hour.
-    Item {
-      id: clock
-      visible: root.notch.settings.showClock
-      readonly property var parts: root.notch.clockParts(root.now)
+    // Centre: the reminder button, with the clock beside it when enabled.
+    Row {
+      id: centre
       anchors.horizontalCenter: parent.horizontalCenter
-      // Bottom of the digits' ink sits on the bottom of the toggle row.
-      y: trailing.y + trailing.height - height + Math.round((height - digits.baselineOffset) * 0.55)
-      width: face.width
-      height: face.height
-      Row {
-        id: face
-        spacing: 5
-        Text {
-          id: digits
-          text: clock.parts.time
-          color: clockTap.pressed ? root.notch.accent : root.notch.ink
-          font.family: root.notch.fontFamily
-          font.pixelSize: root.notch.displaySize + 4
-          font.weight: Font.DemiBold
-          font.letterSpacing: -1
-          font.features: { "tnum": 1 }
-          textFormat: Text.PlainText
+      anchors.verticalCenter: parent.verticalCenter
+      spacing: 14
+
+      Item {
+        id: clock
+        visible: root.notch.settings.showClock
+        readonly property var parts: root.notch.clockParts(root.now)
+        anchors.verticalCenter: parent.verticalCenter
+        width: face.width
+        height: face.height
+        Row {
+          id: face
+          spacing: 5
+          Text {
+            id: digits
+            text: clock.parts.time
+            color: clockTap.pressed ? root.notch.accent : root.notch.ink
+            font.family: root.notch.fontFamily
+            font.pixelSize: root.notch.displaySize + 4
+            font.weight: Font.DemiBold
+            font.letterSpacing: -1
+            font.features: { "tnum": 1 }
+            textFormat: Text.PlainText
+          }
+          Text {
+            y: digits.y + digits.baselineOffset - baselineOffset
+            visible: text !== ""
+            text: clock.parts.suffix
+            color: root.notch.inkDim
+            font.family: root.notch.fontFamily
+            font.pixelSize: root.notch.captionSize + 1
+            font.weight: Font.DemiBold
+            textFormat: Text.PlainText
+          }
         }
-        Text {
-          y: digits.y + digits.baselineOffset - baselineOffset
-          visible: text !== ""
-          text: clock.parts.suffix
-          color: root.notch.inkDim
-          font.family: root.notch.fontFamily
-          font.pixelSize: root.notch.captionSize + 1
-          font.weight: Font.DemiBold
-          textFormat: Text.PlainText
+        MouseArea {
+          id: clockTap
+          anchors.fill: parent
+          cursorShape: Qt.PointingHandCursor
+          onClicked: root.notch.toggleClockFormat()
         }
       }
-      MouseArea {
-        id: clockTap
-        anchors.fill: parent
-        cursorShape: Qt.PointingHandCursor
-        onClicked: root.notch.toggleClockFormat()
+
+      Rectangle {
+        id: reminder
+        anchors.verticalCenter: parent.verticalCenter
+        width: root.notch.toggleSize + 6
+        height: width
+        radius: width / 2
+        color: root.notch.reminderPending ? root.notch.accent : (reminderHover.containsMouse ? root.notch.trackHover : root.notch.track)
+        Behavior on color { ColorAnimation { duration: 120 } }
+        Text {
+          anchors.centerIn: parent
+          text: "󰢌"
+          color: root.notch.reminderPending ? root.notch.islandColor : root.notch.ink
+          font.family: root.notch.fontFamily
+          font.pixelSize: root.notch.iconSize
+          textFormat: Text.PlainText
+        }
+        MouseArea {
+          id: reminderHover
+          anchors.fill: parent
+          hoverEnabled: true
+          cursorShape: Qt.PointingHandCursor
+          onClicked: root.notch.runToggle("reminder")
+        }
       }
     }
 

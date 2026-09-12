@@ -435,6 +435,28 @@ Item {
   readonly property string dictationLabel: Model.dictationLabel(dictationState)
   function setDictationState(state) { dictationState = String(state || "idle") }
 
+  // Reminders: count from omarchy-reminder, refreshed while the dashboard shows.
+  property int reminderCount: 0
+  Process {
+    id: reminderProbe
+    command: ["omarchy-reminder", "show", "--json"]
+    stdout: StdioCollector {
+      waitForEnd: true
+      onStreamFinished: {
+        try { root.reminderCount = Number(JSON.parse(this.text).count || 0) } catch (e) { root.reminderCount = 0 }
+      }
+    }
+    onExited: function(code) { if (code !== 0) root.reminderCount = 0 }
+  }
+  Timer {
+    interval: 30000
+    repeat: true
+    running: root.dashboardShowing
+    triggeredOnStart: true
+    onTriggered: if (!reminderProbe.running) reminderProbe.running = true
+  }
+  Timer { id: reminderRefresh; interval: 4000; onTriggered: if (!reminderProbe.running) reminderProbe.running = true }
+
   readonly property var dials: [
     { key: "volume", icon: volumeMuted ? "󰖁" : (volumeLevel < 0.34 ? "󰕿" : (volumeLevel < 0.67 ? "󰖀" : "󰕾")), level: volumeLevel, active: !volumeMuted },
     { key: "brightness", icon: "󰃟", level: backlightLevel, active: true },
@@ -461,11 +483,17 @@ Item {
     { key: "stayawake", icon: "󰅶", label: "Stay Awake", active: stayAwake },
     { key: "dictate", icon: dictationState === "transcribing" ? "󰔟" : "󰍬", label: "Dictate", active: dictating }
   ]
+  readonly property bool reminderPending: reminderCount > 0
 
   function runToggle(key) {
     if (key === "dnd" && notifications) notifications.setDoNotDisturb(!dnd)
     else if (key === "nightlight" && nightlight) nightlight.setNightlight(!nightlightOn)
     else if (key === "stayawake" && idle) idle.setIdleEnabled(stayAwake)
+    else if (key === "reminder") {
+      Quickshell.execDetached(["omarchy-reminder", reminderCount > 0 ? "show" : "-i"])
+      minimizeUntilPointerLeaves()
+      reminderRefresh.restart()
+    }
     else if (key === "dictate") {
       if (voxtypePresent) {
         Quickshell.execDetached(["voxtype", "record", "toggle"])

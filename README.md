@@ -11,13 +11,14 @@ The MacBook notch as a Dynamic Island for Omarchy. Inspired by
   declares itself a clone of the stock `omarchy.osd`, so every OSD the shell
   and its scripts send lands here and the bottom-of-screen card is disabled.
   Removing the plugin restores it.
-- **Dashboard when nothing is playing.** Date and battery on the ears, level
-  dials for volume, display brightness,
-  keyboard backlight and microphone on the left (scroll to adjust, click
-  volume or mic to mute, click the keyboard dial to cycle), and Do Not
-  Disturb, Night Light, Stay Awake and Dictate toggles on the right. Set
-  `showClock` for a clock between the two groups; click it to switch 12/24
-  hour time.
+- **Dashboard when nothing is playing.** Date and battery on the ears. On
+  the left, level dials for volume, display brightness, keyboard backlight
+  and microphone (scroll to adjust, click volume or mic to mute, click the
+  keyboard dial to cycle). In the centre, a Reminder button that lights while
+  one is pending and opens Omarchy's reminder flow. On the right, Do Not
+  Disturb, Night Light, Stay Awake and Dictate toggles. Set
+  `showClock` for a clock beside the reminder button; click it to switch
+  12/24 hour time.
 - **Dictation as a live activity.** Dictate starts voxtype and the island
   shrinks to a pulsing dot, mic glyph and "Listening" pill; hover leaves it
   alone and a click on the pill stops recording. Without voxtype the button

@@ -189,6 +189,7 @@ test("island sizes grow symmetrically from the notch", () => {
   assert.ok(M.islandSize("event", s, { kind: "notification" }).height > 32)
   assert.ok(M.islandSize("expanded", s, { mode: "media" }).height > M.islandSize("expanded", s, { mode: "dashboard" }).height)
   assert.ok(M.islandSize("expanded", s).width > compact.width)
+  assert.ok(M.islandSize("expanded", s, { showClock: false }).width < M.islandSize("expanded", s, { showClock: true }).width)
   assert.equal((M.islandSize("event", s, { kind: "osd", hasProgress: true }).width - 200) % 2, 0)
 })
 

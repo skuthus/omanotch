@@ -89,6 +89,7 @@ Item {
     // switch 12/24 hour.
     Item {
       id: clock
+      visible: root.notch.settings.showClock
       readonly property var parts: root.notch.clockParts(root.now)
       anchors.horizontalCenter: parent.horizontalCenter
       // Bottom of the digits' ink sits on the bottom of the toggle row.

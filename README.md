@@ -67,6 +67,7 @@ All keys live on the `skuthus.omanotch` entry in `plugins[]` of
 | `airpods` | true | AirPods connect card |
 | `scrollVolume` | true | Wheel over the island changes volume |
 | `clock24` | false | 24 hour dashboard clock; click the clock to toggle |
+| `showClock` | true | Show the clock on the dashboard; off leaves dials and toggles only |
 | `lowBatteryLevels` | `[20, 10]` | Percentages that trigger a low-battery card |
 
 ## Theming

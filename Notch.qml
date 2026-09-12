@@ -588,7 +588,8 @@ Item {
     hasProgress: currentEvent ? currentEvent.hasProgress === true : false,
     textWidth: eventMetrics.advanceWidth,
     pad: pad,
-    mode: expandedMode
+    mode: expandedMode,
+    showClock: settings.showClock
   })
 
   readonly property var notchScreen: {

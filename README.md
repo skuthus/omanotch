@@ -13,6 +13,7 @@ The MacBook notch as a Dynamic Island for Omarchy. Inspired by
   Removing the plugin restores it.
 - **Dashboard when nothing is playing.** Hover for the date, clock, battery
   and time remaining, plus Do Not Disturb, Night Light and Stay Awake toggles.
+  Click the clock to switch between 12 and 24 hour time.
 - **Cards for things that happen.** Charger plugged or pulled, low battery at
   20 % and 10 %, AirPods connecting (per-pod and case battery via the omapods
   daemon's state file), notification previews, and status flashes for Caps
@@ -63,6 +64,7 @@ All keys live on the `skuthus.omanotch` entry in `plugins[]` of
 | `batteryEvents` | true | Charger and low-battery cards |
 | `airpods` | true | AirPods connect card |
 | `scrollVolume` | true | Wheel over the island changes volume |
+| `clock24` | false | 24 hour dashboard clock; click the clock to toggle |
 | `lowBatteryLevels` | `[20, 10]` | Percentages that trigger a low-battery card |
 
 ## Theming

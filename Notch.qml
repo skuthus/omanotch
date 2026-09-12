@@ -26,6 +26,16 @@ Item {
   readonly property var settingsEntry: Model.pluginEntry(shell ? shell.shellConfig : null, pluginId)
   readonly property var settings: Model.resolveSettings(settingsEntry)
 
+  function setSetting(key, value) {
+    if (!shell || typeof shell.mutateShellConfig !== "function") return
+    var patch = {}
+    patch[key] = value
+    shell.mutateShellConfig(Model.settingsMutator(pluginId, patch))
+  }
+
+  readonly property string clockFormat: Model.clockFormat(settings.clock24)
+  function toggleClockFormat() { setSetting("clock24", !settings.clock24) }
+
   property bool calibrating: false
   property int calWidth: 0
   property int calHeight: 0

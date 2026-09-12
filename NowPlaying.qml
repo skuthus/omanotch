@@ -181,7 +181,7 @@ Item {
         font.family: root.notch.fontFamily
         font.pixelSize: root.notch.iconSize
         textFormat: Text.PlainText
-        TapHandler { id: sourceTap; onTapped: root.notch.switchSource() }
+        TapHandler { id: sourceTap; gesturePolicy: TapHandler.ReleaseWithinBounds; onTapped: root.notch.switchSource() }
         HoverHandler { cursorShape: Qt.PointingHandCursor }
       }
       Text {
@@ -192,7 +192,7 @@ Item {
         font.family: root.notch.fontFamily
         font.pixelSize: root.notch.iconSize * 1.15
         textFormat: Text.PlainText
-        TapHandler { id: prevTap; onTapped: if (root.player && root.player.canGoPrevious) root.player.previous() }
+        TapHandler { id: prevTap; gesturePolicy: TapHandler.ReleaseWithinBounds; onTapped: if (root.player && root.player.canGoPrevious) root.player.previous() }
         HoverHandler { cursorShape: Qt.PointingHandCursor }
       }
       Text {
@@ -203,7 +203,7 @@ Item {
         font.family: root.notch.fontFamily
         font.pixelSize: root.notch.iconSize * 1.6
         textFormat: Text.PlainText
-        TapHandler { id: playTap; onTapped: if (root.player && root.player.canTogglePlaying) root.player.togglePlaying() }
+        TapHandler { id: playTap; gesturePolicy: TapHandler.ReleaseWithinBounds; onTapped: if (root.player && root.player.canTogglePlaying) root.player.togglePlaying() }
         HoverHandler { cursorShape: Qt.PointingHandCursor }
       }
       Text {
@@ -214,7 +214,7 @@ Item {
         font.family: root.notch.fontFamily
         font.pixelSize: root.notch.iconSize * 1.15
         textFormat: Text.PlainText
-        TapHandler { id: nextTap; onTapped: if (root.player && root.player.canGoNext) root.player.next() }
+        TapHandler { id: nextTap; gesturePolicy: TapHandler.ReleaseWithinBounds; onTapped: if (root.player && root.player.canGoNext) root.player.next() }
         HoverHandler { cursorShape: Qt.PointingHandCursor }
       }
     }

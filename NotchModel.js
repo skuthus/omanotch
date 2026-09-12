@@ -15,6 +15,7 @@ var DEFAULTS = {
   batteryEvents: true,
   airpods: true,
   scrollVolume: true,
+  clock24: false,
   lowBatteryLevels: [20, 10]
 }
 
@@ -476,6 +477,10 @@ function pluginEntry(config, pluginId) {
   return null
 }
 
+function clockFormat(clock24) {
+  return clock24 ? "HH:mm" : "h:mm"
+}
+
 function mediaSubtitle(artist, album, app) {
   var parts = []
   if (artist) parts.push(artist)
@@ -523,6 +528,7 @@ if (typeof module !== "undefined") {
     calibrationStep: calibrationStep,
     settingsMutator: settingsMutator,
     pluginEntry: pluginEntry,
+    clockFormat: clockFormat,
     mediaSubtitle: mediaSubtitle,
     progressFraction: progressFraction
   }

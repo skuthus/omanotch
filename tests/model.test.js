@@ -218,6 +218,12 @@ test("settings mutator writes into the plugins entry", () => {
   assert.equal(M.pluginEntry(null, "x"), null)
 })
 
+test("clock format follows the 24 hour setting", () => {
+  assert.equal(M.resolveSettings({}).clock24, false)
+  assert.equal(M.clockFormat(false), "h:mm")
+  assert.equal(M.clockFormat(true), "HH:mm")
+})
+
 test("media helpers", () => {
   assert.equal(M.mediaSubtitle("Artist", "Album", "Spotify"), "Artist · Album")
   assert.equal(M.mediaSubtitle("Artist", "Artist", "Spotify"), "Artist")

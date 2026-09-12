@@ -71,13 +71,20 @@ Item {
       anchors.left: parent.left
       anchors.verticalCenter: parent.verticalCenter
       spacing: 0
+      // Click the clock to switch between 12 and 24 hour time.
       Text {
-        text: Qt.formatTime(root.now, "h:mm")
-        color: root.notch.ink
+        text: Qt.formatTime(root.now, root.notch.clockFormat)
+        color: clockTap.pressed ? root.notch.accent : root.notch.ink
         font.family: root.notch.fontFamily
         font.pixelSize: root.notch.displaySize
         font.bold: true
         textFormat: Text.PlainText
+        TapHandler {
+          id: clockTap
+          gesturePolicy: TapHandler.ReleaseWithinBounds
+          onTapped: root.notch.toggleClockFormat()
+        }
+        HoverHandler { cursorShape: Qt.PointingHandCursor }
       }
       Text {
         text: root.notch.batteryDetail
@@ -113,7 +120,7 @@ Item {
             font.pixelSize: root.notch.iconSize
             textFormat: Text.PlainText
           }
-          TapHandler { onTapped: root.notch.runToggle(toggle.modelData.key) }
+          TapHandler { gesturePolicy: TapHandler.ReleaseWithinBounds; onTapped: root.notch.runToggle(toggle.modelData.key) }
           HoverHandler { id: toggleHover; cursorShape: Qt.PointingHandCursor }
           Text {
             anchors.top: parent.bottom

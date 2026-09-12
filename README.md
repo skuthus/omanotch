@@ -75,8 +75,6 @@ it follows the active theme the way the shell's popups do:
 - the accent drives progress bars, the visualizer, active toggles, the
   calibration island and the tint of the empty-art tile, lifted when a theme's
   accent is too dark to read on black
-- the widened island gets a hairline in the popup border colour, hidden when
-  the island is idle so the notch stays seamless
 - urgent cards (low battery, critical notifications) use the theme's urgent
   colour
 
@@ -88,8 +86,6 @@ background = "#000000"   # keep this black on a real notch
 text = "#F8EBE3"
 accent = "#A5B5AB"
 urgent = "#F0334A"
-border = "#A5B5AB"
-border-alpha = 0.35
 ```
 
 ## IPC

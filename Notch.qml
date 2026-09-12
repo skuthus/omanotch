@@ -35,12 +35,11 @@ Item {
 
   // ------------------------------------------------------------- theming
 
-  // The island stays black so it blends into the camera cutout, but the ink,
-  // accent and hairline follow the theme the way the shell's popups do. A
+  // The island stays black so it blends into the camera cutout, but the ink
+  // and accent follow the theme the way the shell's popups do. A
   // theme can steer them directly from an [omanotch] section in shell.toml;
-  // otherwise text comes from the popup text colour when it reads on black,
-  // the accent from the theme accent (lifted if it would sink), and the
-  // border from the popup border.
+  // otherwise text comes from the popup text colour when it reads on black
+  // and the accent from the theme accent (lifted if it would sink).
   readonly property string fontFamily: Style.font.family
   readonly property int captionSize: Style.font.caption
   readonly property int bodySize: Style.font.body
@@ -64,11 +63,6 @@ Item {
   readonly property color accentFill: Qt.rgba(accent.r, accent.g, accent.b, 0.22)
   readonly property color artPlaceholder: Qt.rgba(accent.r, accent.g, accent.b, 0.16)
   readonly property color artGlyph: Qt.rgba(accent.r, accent.g, accent.b, 0.8)
-  readonly property color borderColor: {
-    var c = Color.pick("omanotch.border", Color.popups.border)
-    var a = Color.pickAlpha("omanotch.border-alpha", 0.35)
-    return Qt.rgba(c.r, c.g, c.b, a)
-  }
   readonly property int percentWidth: Math.ceil(percentMetrics.advanceWidth)
 
   TextMetrics {
@@ -589,25 +583,6 @@ Item {
         bottomRightRadius: root.islandSize.radius
         Behavior on bottomLeftRadius { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
         Behavior on bottomRightRadius { NumberAnimation { duration: 260; easing.type: Easing.OutCubic } }
-      }
-
-      // Hairline in the theme's popup border colour. Its top edge sits one
-      // pixel above the screen so only the sides and bottom show.
-      Rectangle {
-        x: 0
-        y: -1
-        width: parent.width
-        height: parent.height + 1
-        color: "transparent"
-        border.width: 1
-        border.color: root.borderColor
-        topLeftRadius: 0
-        topRightRadius: 0
-        bottomLeftRadius: shape.bottomLeftRadius
-        bottomRightRadius: shape.bottomRightRadius
-        visible: island.widened && !root.calibrating
-        opacity: island.widened ? 1 : 0
-        Behavior on opacity { NumberAnimation { duration: 160 } }
       }
 
       Fillet {

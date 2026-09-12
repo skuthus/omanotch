@@ -1,0 +1,228 @@
+const test = require("node:test")
+const assert = require("node:assert/strict")
+
+const M = require("../NotchModel.js")
+
+test("settings merge defaults and clamp notch geometry", () => {
+  const s = M.resolveSettings({ id: "x", notchWidth: "5000", notchHeight: 3, notifications: false, visualizer: "cava", bogus: 1 })
+  assert.equal(s.notchWidth, 800)
+  assert.equal(s.notchHeight, 12)
+  assert.equal(s.notifications, false)
+  assert.equal(s.visualizer, "cava")
+  assert.equal(s.bogus, undefined)
+  assert.deepEqual(M.resolveSettings(null).lowBatteryLevels, [20, 10])
+  assert.deepEqual(M.resolveSettings({ lowBatteryLevels: [15, "x"] }).lowBatteryLevels, [15])
+})
+
+test("osd payload maps to a progress event like the stock OSD", () => {
+  const e = M.osdEventFromPayload(JSON.stringify({ icon: "volume-medium", value: "42", max: "100", progressText: "42%", message: "", duration: "" }))
+  assert.equal(e.kind, "osd")
+  assert.equal(e.hasProgress, true)
+  assert.equal(e.value, 42)
+  assert.equal(e.message, "42%")
+  assert.equal(e.icon, M.iconFor("volume-medium", 42))
+  assert.equal(e.duration, M.DEFAULTS.osdDuration)
+  assert.equal(e.media, false)
+})
+
+test("osd payload with a message has no progress and honours duration", () => {
+  const e = M.osdEventFromPayload(JSON.stringify({ icon: "media-next", message: "Song - Artist", value: "", duration: "800" }))
+  assert.equal(e.hasProgress, false)
+  assert.equal(e.message, "Song - Artist")
+  assert.equal(e.duration, 800)
+  assert.equal(e.media, true)
+  assert.equal(M.osdEventFromPayload("not json").kind, "osd")
+  assert.equal(M.osdEventFromPayload(JSON.stringify({ value: "150", max: "100" })).value, 100)
+  assert.equal(M.osdEventFromPayload(JSON.stringify({ value: "7" })).icon, M.iconFor("", 7))
+})
+
+test("icon table covers the named glyphs and falls back to raw text", () => {
+  assert.equal(M.iconFor("Keyboard", 0), "󰌌")
+  assert.equal(M.iconFor("brightness", 0), "󰍹")
+  assert.equal(M.iconFor("X", 0), "X")
+  assert.equal(M.iconFor("", 0), "󰖁")
+  assert.equal(M.iconFor("", 50), "󰖀")
+  assert.equal(M.iconFor("", 90), "󰕾")
+  assert.equal(M.iconFor("volume-muted", 0), "󰖁")
+  assert.equal(M.isMicIconKey("microphone-muted"), true)
+  assert.equal(M.isMicIconKey("volume"), false)
+})
+
+test("state resolution ranks calibrate > event > expanded > compact > idle", () => {
+  assert.equal(M.resolveState({ calibrating: true, event: { kind: "osd" }, expanded: true, mediaPlaying: true }), "calibrate")
+  assert.equal(M.resolveState({ event: { kind: "flash" }, expanded: true }), "event")
+  assert.equal(M.resolveState({ event: { kind: "osd" }, expanded: true }), "expanded")
+  assert.equal(M.resolveState({ expanded: true, mediaPlaying: true }), "expanded")
+  assert.equal(M.resolveState({ mediaPlaying: true }), "compact")
+  assert.equal(M.resolveState({}), "idle")
+})
+
+test("osd events jump the queue and replace a showing osd", () => {
+  const osd1 = { kind: "osd", value: 1 }
+  const osd2 = { kind: "osd", value: 2 }
+  const note = { kind: "notification", key: "" }
+  let r = M.enqueue(null, [note], osd1)
+  assert.equal(r.current, null)
+  assert.deepEqual(r.queue, [osd1, note])
+  r = M.enqueue(osd1, [note], osd2)
+  assert.equal(r.current, osd2)
+  assert.equal(r.replaced, true)
+  assert.deepEqual(r.queue, [note])
+  r = M.enqueue(note, [osd1], osd2)
+  assert.deepEqual(r.queue, [osd2])
+})
+
+test("same-key flashes coalesce and the queue is capped", () => {
+  const on = { kind: "flash", key: "capslock", active: true }
+  const off = { kind: "flash", key: "capslock", active: false }
+  let r = M.enqueue(null, [on], off)
+  assert.deepEqual(r.queue, [off])
+  r = M.enqueue(on, [], off)
+  assert.equal(r.current, off)
+  assert.equal(r.replaced, true)
+  const n = (i) => ({ kind: "notification", key: "", i })
+  r = M.enqueue(n(0), [n(1), n(2), n(3)], n(4), 3)
+  assert.deepEqual(r.queue.map(e => e.i), [2, 3, 4])
+})
+
+test("battery formatting", () => {
+  assert.equal(M.batteryIcon(100, false), "󰁹")
+  assert.equal(M.batteryIcon(0, false), "󰂎")
+  assert.equal(M.batteryIcon(55, true), "󰂄")
+  assert.equal(M.formatDuration(0), "")
+  assert.equal(M.formatDuration(59), "1m")
+  assert.equal(M.formatDuration(3600), "1h")
+  assert.equal(M.formatDuration(5400), "1h 30m")
+  assert.equal(M.formatClock(65), "1:05")
+  assert.equal(M.formatClock(-3), "0:00")
+})
+
+test("power source events and low battery thresholds", () => {
+  const plug = M.powerSourceEvent(false, 64.4, 3600)
+  assert.equal(plug.title, "Charging")
+  assert.equal(plug.message, "64% · 1h to full")
+  const pull = M.powerSourceEvent(true, 64, 0)
+  assert.equal(pull.title, "On Battery")
+  assert.equal(pull.message, "64%")
+  let r = M.lowBatteryCheck(50, true, [20, 10], [])
+  assert.equal(r.event, null)
+  r = M.lowBatteryCheck(19, true, [20, 10], [])
+  assert.equal(r.event.title, "Low Battery")
+  assert.deepEqual(r.warned, [20])
+  r = M.lowBatteryCheck(18, true, [20, 10], r.warned)
+  assert.equal(r.event, null)
+  r = M.lowBatteryCheck(9, true, [20, 10], r.warned)
+  assert.deepEqual(r.warned, [20, 10])
+  assert.equal(r.event.urgent, true)
+  r = M.lowBatteryCheck(9, false, [20, 10], r.warned)
+  assert.deepEqual(r.warned, [])
+})
+
+test("airpods status parses librepods json", () => {
+  const raw = JSON.stringify({ schema_version: 1, connected: true, device_name: "Beans", model_name: "AirPods Pro 2", is_pro_series: true,
+    left: { available: true, charging: false, in_ear: true, level: 80 }, right: { available: true, level: 78 }, case: { available: false, level: 0 }, headset: { available: false } })
+  const s = M.parseAirpods(raw)
+  assert.equal(s.connected, true)
+  assert.equal(s.left.level, 80)
+  assert.equal(s.caseBattery.level, -1)
+  const e = M.airpodsEvent(s)
+  assert.equal(e.title, "Beans")
+  assert.equal(e.message, "L 80%  R 78%")
+  assert.equal(M.parseAirpods(""), null)
+  assert.equal(M.parseAirpods("{"), null)
+  assert.equal(M.parseAirpods("[]").connected, false)
+  const headset = M.airpodsEvent(M.parseAirpods(JSON.stringify({ connected: true, is_headset: true, headset: { available: true, level: 33 } })))
+  assert.equal(headset.message, "33%")
+  assert.equal(M.airpodsEvent(M.parseAirpods(JSON.stringify({ connected: true }))).message, "Connected")
+  assert.equal(M.airpodsEvent(null), null)
+})
+
+test("notification rows become preview events with markup stripped", () => {
+  const e = M.notificationEvent({ app: "Signal", appIcon: "signal", summary: "Ada", body: "<b>hi</b>\n there", urgency: 2 })
+  assert.equal(e.title, "Ada")
+  assert.equal(e.message, "hi there")
+  assert.equal(e.urgent, true)
+  assert.equal(e.duration, M.DEFAULTS.notificationDuration)
+  assert.equal(M.notificationEvent({ app: "X" }).title, "X")
+  assert.equal(M.notificationEvent({ app: "X", summary: "S" }).message, "X")
+  assert.equal(M.notificationEvent({}).title, "Notification")
+})
+
+test("status flashes and keyboard layout events", () => {
+  assert.equal(M.flashEvent("capslock", true).title, "Caps Lock on")
+  assert.equal(M.flashEvent("mic", false).title, "Microphone muted")
+  assert.equal(M.flashEvent("recording", true).title, "Recording started")
+  assert.equal(M.flashEvent("layout", true, "English (US)").title, "English (US)")
+  assert.equal(M.flashEvent("layout", true, "").title, "Layout changed")
+  assert.equal(M.flashEvent("nope", true), null)
+  assert.equal(M.layoutFromEvent("apple-internal-keyboard,English (US)"), "English (US)")
+  assert.equal(M.layoutFromEvent("hl-virtual-keyboard-1,English (US)"), "")
+  assert.equal(M.layoutFromEvent("garbage"), "")
+})
+
+test("visualizer parsing and modes", () => {
+  assert.deepEqual(M.parseCavaLine("0;50;100;x;", 5), [0, 0.5, 1, 0, 0])
+  assert.deepEqual(M.parseCavaLine("200;", 1), [1])
+  const bars = M.fakeBars(1.5, 4)
+  assert.equal(bars.length, 4)
+  bars.forEach(b => { assert.ok(b >= 0.08 && b <= 1) })
+  assert.equal(M.visualizerMode("auto", true), "cava")
+  assert.equal(M.visualizerMode("auto", false), "fake")
+  assert.equal(M.visualizerMode("cava", false), "fake")
+  assert.equal(M.visualizerMode("off", true), "off")
+  assert.equal(M.visualizerMode("fake", true), "fake")
+  assert.match(M.cavaConfig(6, 30), /bars = 6/)
+  assert.match(M.cavaConfig(6), /framerate = 30/)
+})
+
+test("island sizes grow symmetrically from the notch", () => {
+  const s = M.resolveSettings({ notchWidth: 200, notchHeight: 32 })
+  const idle = M.islandSize("idle", s)
+  assert.deepEqual([idle.width, idle.height], [200, 32])
+  assert.deepEqual([M.islandSize("calibrate", s).width], [200])
+  const compact = M.islandSize("compact", s)
+  assert.ok(compact.width > 200 && compact.height === 32)
+  assert.ok(M.islandSize("event", s, { kind: "osd", hasProgress: true }).width > compact.width)
+  assert.ok(M.islandSize("event", s, { kind: "osd", hasProgress: false, textWidth: 400 }).width > 500)
+  assert.ok(M.islandSize("event", s, { kind: "flash", textWidth: 10 }).width > 200)
+  assert.ok(M.islandSize("event", s, { kind: "battery", textWidth: 120 }).width > 200)
+  assert.ok(M.islandSize("event", s, { kind: "notification" }).height > 32)
+  assert.ok(M.islandSize("expanded", s, { mode: "media" }).height > M.islandSize("expanded", s, { mode: "dashboard" }).height)
+  assert.ok(M.islandSize("expanded", s).width > compact.width)
+  assert.equal((M.islandSize("event", s, { kind: "osd", hasProgress: true }).width - 200) % 2, 0)
+})
+
+test("calibration keys nudge and save", () => {
+  const s = { notchWidth: 190, notchHeight: 32 }
+  assert.equal(M.calibrationStep(M.CAL_KEYS.right, false, s).notchWidth, 192)
+  assert.equal(M.calibrationStep(M.CAL_KEYS.left, true, s).notchWidth, 180)
+  assert.equal(M.calibrationStep(M.CAL_KEYS.up, false, s).notchHeight, 31)
+  assert.equal(M.calibrationStep(M.CAL_KEYS.down, true, s).notchHeight, 36)
+  assert.equal(M.calibrationStep(M.CAL_KEYS.enter, false, s).action, "save")
+  assert.equal(M.calibrationStep(M.CAL_KEYS.ret, false, s).action, "save")
+  assert.equal(M.calibrationStep(M.CAL_KEYS.escape, false, s).action, "cancel")
+  assert.equal(M.calibrationStep(65, false, s), null)
+  assert.equal(M.calibrationStep(M.CAL_KEYS.left, true, { notchWidth: 62, notchHeight: 32 }).notchWidth, 60)
+})
+
+test("settings mutator writes into the plugins entry", () => {
+  const config = { plugins: [{ id: "other" }] }
+  M.settingsMutator("skuthus.omanotch", { notchWidth: 201 })(config)
+  assert.deepEqual(M.pluginEntry(config, "skuthus.omanotch"), { id: "skuthus.omanotch", notchWidth: 201 })
+  M.settingsMutator("skuthus.omanotch", { notchHeight: 30 })(config)
+  assert.equal(M.pluginEntry(config, "skuthus.omanotch").notchWidth, 201)
+  assert.equal(config.plugins.length, 2)
+  const bare = {}
+  M.settingsMutator("skuthus.omanotch", {})(bare)
+  assert.equal(bare.plugins.length, 1)
+  assert.equal(M.pluginEntry(null, "x"), null)
+})
+
+test("media helpers", () => {
+  assert.equal(M.mediaSubtitle("Artist", "Album", "Spotify"), "Artist · Album")
+  assert.equal(M.mediaSubtitle("Artist", "Artist", "Spotify"), "Artist")
+  assert.equal(M.mediaSubtitle("", "", "Spotify"), "Spotify")
+  assert.equal(M.progressFraction(30, 120), 0.25)
+  assert.equal(M.progressFraction(30, 0), 0)
+  assert.equal(M.progressFraction(500, 120), 1)
+})

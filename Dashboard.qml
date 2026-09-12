@@ -70,6 +70,7 @@ Item {
     Column {
       anchors.left: parent.left
       anchors.verticalCenter: parent.verticalCenter
+      anchors.verticalCenterOffset: -Math.round(root.notch.pad * 0.4)
       spacing: 0
       // Click the clock to switch between 12 and 24 hour time.
       Item {
@@ -107,7 +108,18 @@ Item {
           onClicked: root.notch.toggleClockFormat()
         }
       }
+    }
+
+    Column {
+      anchors.right: parent.right
+      anchors.top: parent.top
+      anchors.bottom: parent.bottom
+      anchors.bottomMargin: Math.round(root.notch.pad * 0.8)
+      spacing: Math.round(root.notch.gap * 0.6)
+
+      // Time remaining sits right under the battery readout on the ear.
       Text {
+        anchors.right: parent.right
         text: root.notch.batteryDetail
         visible: text !== ""
         color: root.notch.inkDim
@@ -115,49 +127,48 @@ Item {
         font.pixelSize: root.notch.captionSize
         textFormat: Text.PlainText
       }
-    }
 
-    Row {
-      anchors.right: parent.right
-      anchors.verticalCenter: parent.verticalCenter
-      spacing: root.notch.gap
+      Row {
+        anchors.right: parent.right
+        spacing: root.notch.gap
 
-      Repeater {
-        model: root.notch.toggles
-        Rectangle {
-          id: toggle
-          required property var modelData
-          width: root.notch.toggleSize
-          height: root.notch.toggleSize
-          radius: Math.round(width * 0.3)
-          color: modelData.active ? root.notch.accentFill : root.notch.track
-          border.width: 1
-          border.color: modelData.active ? root.notch.accent : "transparent"
-          Text {
-            anchors.centerIn: parent
-            text: toggle.modelData.icon
-            color: toggle.modelData.active ? root.notch.accent : root.notch.ink
-            font.family: root.notch.fontFamily
-            font.pixelSize: root.notch.iconSize
-            textFormat: Text.PlainText
-          }
-          MouseArea {
-            id: toggleHover
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: root.notch.runToggle(toggle.modelData.key)
-          }
-          Text {
-            anchors.top: parent.bottom
-            anchors.topMargin: 2
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: toggle.modelData.label
-            visible: toggleHover.containsMouse
-            color: root.notch.inkDim
-            font.family: root.notch.fontFamily
-            font.pixelSize: root.notch.captionSize - 1
-            textFormat: Text.PlainText
+        Repeater {
+          model: root.notch.toggles
+          Rectangle {
+            id: toggle
+            required property var modelData
+            width: root.notch.toggleSize
+            height: root.notch.toggleSize
+            radius: Math.round(width * 0.3)
+            color: modelData.active ? root.notch.accentFill : root.notch.track
+            border.width: 1
+            border.color: modelData.active ? root.notch.accent : "transparent"
+            Text {
+              anchors.centerIn: parent
+              text: toggle.modelData.icon
+              color: toggle.modelData.active ? root.notch.accent : root.notch.ink
+              font.family: root.notch.fontFamily
+              font.pixelSize: root.notch.iconSize
+              textFormat: Text.PlainText
+            }
+            MouseArea {
+              id: toggleHover
+              anchors.fill: parent
+              hoverEnabled: true
+              cursorShape: Qt.PointingHandCursor
+              onClicked: root.notch.runToggle(toggle.modelData.key)
+            }
+            Text {
+              anchors.top: parent.bottom
+              anchors.topMargin: 1
+              anchors.horizontalCenter: parent.horizontalCenter
+              text: toggle.modelData.label
+              visible: toggleHover.containsMouse
+              color: root.notch.inkDim
+              font.family: root.notch.fontFamily
+              font.pixelSize: root.notch.captionSize - 2
+              textFormat: Text.PlainText
+            }
           }
         }
       }

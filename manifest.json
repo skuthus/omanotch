@@ -2,11 +2,12 @@
   "schemaVersion": 1,
   "id": "skuthus.omanotch",
   "name": "Omanotch",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "author": "skuthus",
   "license": "MIT",
   "homepage": "https://github.com/skuthus/omanotch",
   "description": "Turns the MacBook notch into a Dynamic Island: now playing on hover with controls and a visualizer, volume and brightness in the notch instead of the bottom OSD, battery, AirPods, notification and status flashes.",
+  "preview": "preview.png",
   "kinds": [
     "panel"
   ],

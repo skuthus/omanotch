@@ -3,6 +3,8 @@
 The MacBook notch as a Dynamic Island for Omarchy. Inspired by
 [Alcove](https://tryalcove.com), built for the Omarchy shell on Asahi Linux.
 
+![Omanotch](preview.png)
+
 - **Now playing on hover.** Album art, title, artist, seek bar, previous /
   play-pause / next, and a source switch when more than one player is open.
 - **Compact wings while music plays.** Art on the left ear, a visualizer on
@@ -36,6 +38,14 @@ The MacBook notch as a Dynamic Island for Omarchy. Inspired by
 omarchy plugin add https://github.com/skuthus/omanotch.git --enable
 ```
 
+Enabling it disables the stock `omarchy.osd` panel through Omarchy's plugin
+clone mechanism (the manifest declares `clonedFrom: "omarchy.osd"`), which is
+how every OSD ends up in the notch. Omarchy records that in
+`~/.config/omarchy/shell.json` and reverses it on removal.
+
+Meant for a MacBook with a notch (tested on a 14" M-series under Asahi
+Linux). On a screen without one it still works as a top-centre island.
+
 Then calibrate the island to your notch once:
 
 ```bash
@@ -46,6 +56,31 @@ The island turns the accent colour so you can see it against the cutout.
 Arrow keys nudge it (`←` `→` width, `↑` `↓` height, hold Shift for bigger
 steps), `Enter` saves, `Esc` cancels. The values land in
 `~/.config/omarchy/shell.json` under the plugin's entry.
+
+## Remove
+
+```bash
+omarchy plugin remove skuthus.omanotch
+```
+
+That re-enables the stock OSD. The plugin keeps no state outside its
+directory and its `skuthus.omanotch` entry in `~/.config/omarchy/shell.json`,
+which holds only the settings below (calibration and preferences you set).
+
+## Dependencies
+
+Everything the plugin needs day to day ships with Omarchy: Quickshell, the
+`omarchy-*` audio, brightness, reminder and voxtype scripts, `wpctl`. Optional
+extras, each detected at runtime and skipped when absent:
+
+- [cava](https://github.com/karlstav/cava) for a real audio visualizer
+  (`pacman -S cava`); without it the bars are a decorative animation
+- [voxtype](https://github.com/peteonrails/voxtype) for the Dictate button;
+  without it the button opens Omarchy's own voxtype installer
+- the [omapods](https://github.com/thisisgm/omapods) daemon for the AirPods
+  card; it reads the daemon's status file and does nothing without it
+
+No sudo or pkexec is required.
 
 ### Visualizer
 
